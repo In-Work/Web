@@ -1,0 +1,42 @@
+﻿@model UserModel
+
+<h1>
+    User Login
+</h1>
+
+<form asp-action="Login" asp-controller="User" method="post" class="row">
+    <div class="mb-2 col-12 col-lg-7">
+        <label class="form-label" asp-for="Name"></label>
+        <input class="form-control" required asp-for="Name" />
+        <span asp-validation-for="Name"></span>
+    </div>
+    <div class="mb-2 col-12 col-lg-7">
+        <label class="form-label" asp-for="Email"></label>
+        <input class="form-control" required asp-for="Email"/>
+        <span asp-validation-for="Email"></span>
+    </div>
+    <div class="mb-2 col-12 col-lg-7">
+        <div>
+            <label class="form-label" asp-for="Password"></label>
+        </div>
+        <div>
+            <input class="form-control" type="password" asp-for="Password" />
+        </div>
+        <div>
+            <span asp-validation-for="Password"></span>
+        </div>
+    </div>
+    <div class="mb-2 col-12 col-lg-7">
+        <div class="row">
+            <button class="btn btn-primary col">Submit</button>
+        </div>
+    </div>
+</form>
+
+
+@section Scripts
+{
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+}

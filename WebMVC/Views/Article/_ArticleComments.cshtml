@@ -1,0 +1,28 @@
+﻿@model List<CommentModel>
+
+<partial name="_AddComment" model="new CommentModel()"/>
+
+@if (Model.Any())
+{
+    <div class="container mt-5">
+        <h2>Comments Count: @Model.Count</h2>
+
+        @foreach (var comment in @Model)
+        {
+            <ul class="list-unstyled" id="commentsList">
+                <li class="media mb-4">
+                    <img src="https://via.placeholder.com/64" class="mr-3 rounded-circle" alt="Avatar">
+                    <div class="media-body">
+                        <h5 class="mt-0 mb-1">@comment.UserModel.Name</h5>
+                        <p>@comment.Text</p>
+                        <small class="text-muted">Опубликовано: @comment.Date.ToString("g")</small>
+                    </div>
+                </li>
+            </ul>
+        }
+    </div>
+}
+else
+{
+    <div>No comments</div>
+}
