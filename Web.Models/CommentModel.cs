@@ -2,10 +2,10 @@
 {
     public class CommentModel
     {
-        public Guid Id { get; set; } = Guid.NewGuid();
+        public Guid Id { get; set; }
         public string Text { get; set; }
-        public DateTime Date { get; set; } = DateTime.Now;
+        public DateTime Date { get; set; }
         public Guid UserId { get; set; }
-        public UserModel UserModel { get; set; }
+        public bool IsEditing { get; set; }
     }
 }

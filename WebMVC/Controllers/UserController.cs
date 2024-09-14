@@ -27,12 +27,15 @@ namespace Web.MVC.Controllers
             var password = "123";
             var email = "test";
 
-            if (model.Password.Equals(password) && model.Email.Equals(email))
+            var userId = _context.Users.FirstOrDefault(u => u.Email.Equals(email))?.Id.ToString();
+
+            if (model.Password.Equals(password) && model.Email.Equals(email) && userId != null)
             {
                 var userRole = "Admin";
 
                 var claims = new List<Claim>()
                 {
+                    new Claim(ClaimTypes.NameIdentifier, userId),
                     new Claim(ClaimTypes.Name, model.Name),
                     new Claim(ClaimTypes.Email, model.Email),
                     new Claim(ClaimTypes.Role, userRole)
@@ -42,13 +45,19 @@ namespace Web.MVC.Controllers
                 var principal = new ClaimsPrincipal(identity);
 
                 await HttpContext.SignInAsync(principal);
-
                 return RedirectToAction("Index", "Article");
             }
 
-
-
             return View(model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Logout()
+        {
+
+            await HttpContext.SignOutAsync();
+
+            return RedirectToAction("Index", "Home");
         }
     }
 }

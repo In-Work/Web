@@ -1,8 +1,0 @@
-﻿@model CommentModel
-
-<form method="post" asp-controller="Comment" asp-action="Add">
-    <div class="input-group mb-3">
-        <input class="form-control" placeholder="Add a comment" aria-label="Recipient's username" aria-describedby="button-addon2">
-        <button asp-for="@Model.Text" type="submit" class="btn btn-primary" type="button" id="button-addon2">Add</button>
-    </div>
-</form>
