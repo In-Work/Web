@@ -137,7 +137,7 @@ namespace Web.MVC.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> CancelEdit(Guid commentId, Guid articleId)
+        public IActionResult CancelEdit(Guid commentId, Guid articleId)
         {
             return RedirectToAction("Details", new { articleId = articleId });
         }
@@ -181,8 +181,13 @@ namespace Web.MVC.Controllers
         {
             var sources = await _context.Sources.Where(s => !string.IsNullOrEmpty(s.RssUrl)).ToListAsync();
 
+           
             foreach (var Source in sources)
             {
+                if(string.IsNullOrEmpty(Source.RssUrl)){
+                    break;
+                }
+
                 using (var xmlReader = XmlReader.Create(Source.RssUrl))
                 {
                     var syndicationFeed = SyndicationFeed.Load(xmlReader);
@@ -224,8 +229,12 @@ namespace Web.MVC.Controllers
         private async Task getArticlesTextTask(Article article)
         {
             var web = new HtmlWeb();
-
             var selector = string.Empty;
+
+            if (article.Source == null)
+            {
+                return;
+            }
 
             switch (article.Source.Title)
             {
