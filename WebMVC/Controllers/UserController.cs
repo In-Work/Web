@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
+using Web.Data.Entities;
 using Web.Data;
 using Web.Models;
 
@@ -54,10 +55,38 @@ namespace Web.MVC.Controllers
         [HttpGet]
         public async Task<IActionResult> Logout()
         {
-
             await HttpContext.SignOutAsync();
 
             return RedirectToAction("Index", "Home");
+        }
+
+        [HttpGet]
+        public IActionResult Register()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Register(UserModel model, CancellationToken token = default)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = new User
+                {
+                    Id = Guid.NewGuid(),
+                    Name = model.Name,
+                    Email = model.Email,
+                    PasswordHash = model.Password 
+                    // В реальном приложении пароль должен быть захеширован
+                };
+
+                _context.Users.Add(user);
+                await _context.SaveChangesAsync(token);
+
+                return RedirectToAction("Login");
+            }
+
+            return View(model);
         }
     }
 }

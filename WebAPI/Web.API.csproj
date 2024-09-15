@@ -22,7 +22,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Web.DataAccess.CQS\Web.DataAccess.CQS.csproj" />
     <ProjectReference Include="..\Web.Infrastructure\Web.Infrastructure.csproj" />
-    <ProjectReference Include="..\WebAPI.Data\Web.Data.csproj" />
+    <ProjectReference Include="..\Web.Data\Web.Data.csproj" />
   </ItemGroup>
 
 </Project>

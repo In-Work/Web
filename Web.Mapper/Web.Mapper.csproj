@@ -12,7 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Web.Models\Web.Models.csproj" />
-    <ProjectReference Include="..\WebAPI.Data\Web.Data.csproj" />
+    <ProjectReference Include="..\Web.Data\Web.Data.csproj" />
   </ItemGroup>
 
 </Project>
