@@ -4,22 +4,36 @@
     ViewData["Title"] = "Articles";
 }
 
-<form asp-action="Agregate" method="post">
-    <button class="btn btn-primary" type="submit">Agregate</button>
-</form>
+<div class="container mt-4">
+    <h1 class="mb-4">@ViewData["Title"]</h1>
 
-@if (Model != null)
-{
-    @foreach (var article in Model)
+    <form asp-action="Agregate" method="post" class="mb-4">
+        <button class="btn btn-primary" type="submit">Aggregate</button>
+    </form>
+
+    @if (Model != null && Model.Any())
     {
-        <div>@article.Title</div>
-        <div class="card">@Html.Raw(@article.Description)</div>
-        <br />
-
-        <a class="btn" asp-route-articleId="@article.Id" asp-action="Details" asp-controller="Article">Details</a>
+        <div class="row row-cols-1 row-cols-md-2 g-4">
+            @foreach (var article in Model)
+            {
+                <div class="col">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">@article.Title</h5>
+                            <p class="card-text">@Html.Raw(article.Description)</p>
+                        </div>
+                        <div class="card-footer">
+                            <a class="btn btn-primary" asp-route-articleId="@article.Id" asp-action="Details" asp-controller="Article">Details</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
     }
-}
-else
-{
-    <div>test</div>
-}
+    else
+    {
+        <div class="alert alert-info" role="alert">
+            No articles found.
+        </div>
+    }
+</div>
