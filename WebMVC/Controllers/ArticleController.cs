@@ -166,6 +166,7 @@ namespace Web.MVC.Controllers
             var articlesWithoutText = await _context.Articles
                 .AsNoTracking()
                 .Where(a => string.IsNullOrEmpty(a.Text))
+                .Include(a => a.Source)
                 .ToListAsync();
 
             foreach (var articleWithoutText in articlesWithoutText)
@@ -178,22 +179,41 @@ namespace Web.MVC.Controllers
 
         private async Task getArticlesDataTask()
         {
-            var Source = await _context.Sources.Where(s => !string.IsNullOrEmpty(s.RssUrl)).FirstOrDefaultAsync();
+            var sources = await _context.Sources.Where(s => !string.IsNullOrEmpty(s.RssUrl)).ToListAsync();
 
-            if (Source?.RssUrl != null)
+            foreach (var Source in sources)
             {
                 using (var xmlReader = XmlReader.Create(Source.RssUrl))
                 {
                     var syndicationFeed = SyndicationFeed.Load(xmlReader);
 
-                    var articles = syndicationFeed.Items.Select(item => new Article()
+                    var articles = syndicationFeed.Items.Select(item =>
                     {
-                        Id = Guid.NewGuid(),
-                        Title = item.Title.Text,
-                        Description = item.Summary?.Text,
-                        SourceId = Source.Id,
-                        OriginalUrl = item.Id
-                    }).ToList();
+                        var description = item.Summary?.Text;
+                        if (!string.IsNullOrEmpty(description))
+                        {
+                            var imgStartIndex = description.IndexOf("<img");
+                            if (imgStartIndex != -1)
+                            {
+                                var imgEndIndex = description.IndexOf(">", imgStartIndex);
+                                if (imgEndIndex != -1)
+                                {
+                                    var imgTag = description.Substring(imgStartIndex, imgEndIndex - imgStartIndex + 1);
+                                    var newImgTag = imgTag.Replace("src=", "style=\"width: 400px; height: 300px; object-fit: cover;\" src=");
+                                    description = description.Replace(imgTag, newImgTag);
+                                }
+                            }
+                        }
+
+                        return new Article()
+                        {
+                            Id = Guid.NewGuid(),
+                            Title = item.Title.Text,
+                            Description = description,
+                            SourceId = Source.Id,
+                            OriginalUrl = item.Id
+                        };
+                    } ).ToList();
 
                     _context.Articles.AddRange(articles);
                     await _context.SaveChangesAsync();
@@ -205,8 +225,29 @@ namespace Web.MVC.Controllers
         {
             var web = new HtmlWeb();
 
+            var selector = string.Empty;
+
+            switch (article.Source.Title)
+            {
+                case "onliner.by":
+                {
+                    selector = "//div[@class='news-text']";
+                } break;
+
+                case "positivnews.ru":
+                {
+                    selector = "//div[@itemprop='articleBody']";
+                } break;
+
+                case "habr.com":
+                {
+                    selector = "//div[@class='tm-article-body']";
+                } break;
+            }
+
             var htmlDocument = web.Load(article.OriginalUrl);
-            var articleNode = htmlDocument.DocumentNode.SelectSingleNode("//div[@class='news-text']");
+            var articleNode = htmlDocument.DocumentNode.SelectSingleNode(selector);
+
             if (articleNode != null)
             {
 
