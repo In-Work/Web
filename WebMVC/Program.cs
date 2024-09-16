@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Web.Data;
-using Web.Services;
+using Web.Services.Abstractions;
 using Web.Services.Implementations;
 
 namespace Web.MVC
@@ -18,6 +18,7 @@ namespace Web.MVC
             // Add services to the container.
             builder.Services.AddControllersWithViews();
             builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<IArticleService, ArticleService>();
 
             builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(opt =>

@@ -9,6 +9,7 @@ using Web.Data;
 using Web.Data.Entities;
 using Web.Mapper;
 using Web.Models;
+using Web.Services.Abstractions;
 using X.PagedList.Extensions;
 
 namespace Web.MVC.Controllers
@@ -16,59 +17,45 @@ namespace Web.MVC.Controllers
     public class ArticleController : Controller
     {
         private readonly ApplicationContext _context;
+        private readonly IArticleService _articleService;
         private readonly ILogger<ArticleController> _logger;
 
-        public ArticleController(ApplicationContext context, ILogger<ArticleController> logger)
+        public ArticleController(ApplicationContext context, ILogger<ArticleController> logger, IArticleService articleService)
         {
             _context = context;
             _logger = logger;
+            _articleService = articleService;
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index(int? page)
+        public async Task<IActionResult> Index(int? page, CancellationToken token = default)
         {
-            int pageSize = 20;
-            int pageNumber = page ?? 1;
-
-            var articles = await _context.Articles
-                .AsNoTracking()
-                .Include(a => a.Source)
-                .ToListAsync()
-                .ConfigureAwait(false);
-
+            var pageSize = 20;
+            var pageNumber = page ?? 1;
+            var articles = await _articleService.GetArticlesAsync(token);
             var models = ApplicationMapper.ArticleListToArticleModelList(articles);
             var pagedArticles = models.ToPagedList(pageNumber, pageSize);
+
             return View(pagedArticles);
         }
 
         [HttpGet]
-        public async Task<IActionResult> Details(Guid articleId)
+        public async Task<IActionResult> Details(Guid articleId, CancellationToken token = default)
         {
-            var article = await _context.Articles
-                .AsNoTracking()
-                .Include(a => a.Source)
-                .FirstOrDefaultAsync(a => a.Id == articleId)
-                .ConfigureAwait(false);
+            var article = await _articleService.GetArticleByIdAsync(articleId, token);
 
-            var comments = await _context.Comments
-                .AsNoTracking()
-                .Where(c => c.ArticleId == articleId)
-                .Include(c => c.User)
-                .ToListAsync()
-                .ConfigureAwait(false);
-
-            if (article != null)
+            if (article == null)
             {
-                var articleWithCommentsModels = new ArticleWithCommentsModel()
-                {
-                    ArticleModel = ApplicationMapper.ArticleToArticleModel(article),
-                    CommentsModels = ApplicationMapper.CommentsModelsToCommentsList(comments)
-                };
-
-                return View(articleWithCommentsModels);
+                return NotFound();
             }
 
-            return NotFound();
+            var articleWithCommentsModels = new ArticleWithCommentsModel()
+            {
+                ArticleModel = ApplicationMapper.ArticleToArticleModel(article),
+                CommentsModels = ApplicationMapper.CommentsModelsToCommentsList(article.Comments)
+            };
+
+            return View(articleWithCommentsModels);
         }
 
         [HttpPost]
@@ -184,6 +171,8 @@ namespace Web.MVC.Controllers
         {
             try
             {
+                _logger.LogInformation("Starting aggregation process.");
+
                 await getArticlesDataTask().ConfigureAwait(false);
 
                 var articlesWithoutText = await _context.Articles
@@ -193,11 +182,22 @@ namespace Web.MVC.Controllers
                     .ToListAsync()
                     .ConfigureAwait(false);
 
+                _logger.LogInformation($"Found {articlesWithoutText.Count} articles without text.");
+
+                List<Task> tasks = new List<Task>();
                 foreach (var articleWithoutText in articlesWithoutText)
                 {
-                    await getArticlesTextTask(articleWithoutText).ConfigureAwait(false);
+                    _logger.LogInformation($"Fetching text for article {articleWithoutText.Id}.");
+                    var task = getArticlesTextTask(articleWithoutText);
+                    tasks.Add(task);
                 }
 
+                await Task.WhenAll(tasks).ConfigureAwait(false);
+
+                _logger.LogInformation("All tasks completed. Saving changes to the database.");
+                await _context.SaveChangesAsync().ConfigureAwait(false);
+
+                _logger.LogInformation("Aggregation process completed successfully.");
                 return View("Index");
             }
             catch (Exception ex)
@@ -249,57 +249,62 @@ namespace Web.MVC.Controllers
                             Title = item.Title.Text,
                             Description = description,
                             SourceId = source.Id,
+                            PublicationDate = DateTime.Now,
                             OriginalUrl = item.Id
                         };
                     }).ToList();
 
                     _context.Articles.AddRange(articles);
-                    await _context.SaveChangesAsync().ConfigureAwait(false);
                 }
             }
+
+            await _context.SaveChangesAsync().ConfigureAwait(false);
         }
 
         private async Task getArticlesTextTask(Article article)
         {
-            var web = new HtmlWeb();
-            var selector = string.Empty;
+            //using (var context = new ApplicationContext())
+            //{
+            //    var web = new HtmlWeb();
+            //    var selector = string.Empty;
 
-            if (article.Source == null)
-            {
-                return;
-            }
+            //    if (article.Source == null)
+            //    {
+            //        return;
+            //    }
 
-            switch (article.Source.Title)
-            {
-                case "onliner.by":
-                    selector = "//div[@class='news-text']";
-                    break;
-                case "positivnews.ru":
-                    selector = "//div[@itemprop='articleBody']";
-                    break;
-                case "habr.com":
-                    selector = "//div[@class='tm-article-body']";
-                    break;
-            }
+            //    switch (article.Source.Title)
+            //    {
+            //        case "onliner.by":
+            //            selector = "//div[@class='news-text']";
+            //            break;
+            //        case "positivnews.ru":
+            //            selector = "//div[@itemprop='articleBody']";
+            //            break;
+            //        case "habr.com":
+            //            selector = "//div[@class='tm-article-body']";
+            //            break;
+            //    }
 
-            var htmlDocument = await web.LoadFromWebAsync(article.OriginalUrl).ConfigureAwait(false);
-            var articleNode = htmlDocument.DocumentNode.SelectSingleNode(selector);
+            //    var htmlDocument = await web.LoadFromWebAsync(article.OriginalUrl).ConfigureAwait(false);
+            //    var articleNode = htmlDocument.DocumentNode.SelectSingleNode(selector);
 
-            if (articleNode != null)
-            {
-                var innerText = articleNode.InnerText;
-                var cleanedText = WebUtility.HtmlDecode(innerText).Trim();
+            //    if (articleNode != null)
+            //    {
+            //        var innerText = articleNode.InnerText;
+            //        var cleanedText = WebUtility.HtmlDecode(innerText).Trim();
 
-                var existingArticle = await _context.Articles
-                    .FirstOrDefaultAsync(a => a.Id == article.Id)
-                    .ConfigureAwait(false);
+            //        var existingArticle = await context.Articles
+            //            .FirstOrDefaultAsync(a => a.Id == article.Id)
+            //            .ConfigureAwait(false);
 
-                if (existingArticle != null)
-                {
-                    existingArticle.Text = cleanedText;
-                    await _context.SaveChangesAsync().ConfigureAwait(false);
-                }
-            }
+            //        if (existingArticle != null)
+            //        {
+            //            existingArticle.Text = cleanedText;
+            //            await context.SaveChangesAsync().ConfigureAwait(false);
+            //        }
+            //    }
+            //}
         }
     }
 }

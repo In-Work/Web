@@ -1,6 +1,6 @@
 ﻿using Web.Models;
 
-namespace Web.Services.Implementations;
+namespace Web.Services.Abstractions;
 
 public interface IUserService
 {

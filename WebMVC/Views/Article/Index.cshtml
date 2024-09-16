@@ -19,9 +19,15 @@
                 <div class="col">
                     <div class="card h-100 shadow-sm">
                         <div class="card-header">
-                            <h6 class="card-title m-2">@article.Title</h6>
+                            <div class="p-2 flex-column">
+                                <div class="text-muted">@article.SourceName</div>
+                                <div class="text-muted">@article.PublicationDate.ToString("d MMMM yyyy hh:mm:ss ")</div>
+                            </div>
+                            <div class="p-2">
+                                <a class="h5 text-black text-decoration-none" href="@article.OriginalUrl">@article.Title</a>
+                            </div>
                         </div>
-                        <div class="card-body m-2">
+                        <div class="card-body">
                             <p class="card-text">@Html.Raw(article.Description)</p>
                         </div>
                         <div class="card-footer bg-transparent border-top-0 mb-2">
@@ -35,11 +41,11 @@
         <nav aria-label="Page navigation" class="mt-4">
             <ul class="pagination justify-content-center">
                 @Html.PagedListPager(Model, page => Url.Action("Index", new { page }), new PagedListRenderOptions
-                {
-                    LiElementClasses = new[] { "page-item" },
-                    PageClasses = new[] { "page-link" },
-                    MaximumPageNumbersToDisplay = 3
-                })
+       {
+           LiElementClasses = new[] { "page-item" },
+           PageClasses = new[] { "page-link" },
+           MaximumPageNumbersToDisplay = 3
+       })
             </ul>
         </nav>
     }

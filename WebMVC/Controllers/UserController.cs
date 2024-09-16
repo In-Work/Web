@@ -2,11 +2,9 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
-using Web.Data.Entities;
 using Web.Data;
 using Web.Models;
-using Web.Services;
-using Web.Services.Implementations;
+using Web.Services.Abstractions;
 
 namespace Web.MVC.Controllers
 {
