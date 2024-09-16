@@ -1,4 +1,4 @@
-﻿@model List<ArticleModel>
+﻿@model IPagedList<ArticleModel>
 
 @{
     ViewData["Title"] = "Articles";
@@ -11,7 +11,7 @@
         <button class="btn btn-primary" type="submit">Aggregate</button>
     </form>
 
-    @if (Model != null && Model.Any())
+    @if (Model.Any())
     {
         <div class="row row-cols-1 row-cols-md-2 g-4">
             @foreach (var article in Model)
@@ -28,6 +28,15 @@
                     </div>
                 </div>
             }
+        </div>
+
+        <div class="pagination">
+            @Html.PagedListPager(Model, page => Url.Action("Index", new { page }), new PagedListRenderOptions
+            {
+                LiElementClasses = new[] { "page-item" },
+                PageClasses = new[] { "page-link" },
+                MaximumPageNumbersToDisplay = 3
+            })
         </div>
     }
     else

@@ -9,7 +9,7 @@ using Web.Data;
 using Web.Data.Entities;
 using Web.Mapper;
 using Web.Models;
-using Microsoft.Extensions.Logging;
+using X.PagedList.Extensions;
 
 namespace Web.MVC.Controllers
 {
@@ -25,8 +25,11 @@ namespace Web.MVC.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? page)
         {
+            int pageSize = 20;
+            int pageNumber = page ?? 1;
+
             var articles = await _context.Articles
                 .AsNoTracking()
                 .Include(a => a.Source)
@@ -34,7 +37,8 @@ namespace Web.MVC.Controllers
                 .ConfigureAwait(false);
 
             var models = ApplicationMapper.ArticleListToArticleModelList(articles);
-            return View(models);
+            var pagedArticles = models.ToPagedList(pageNumber, pageSize);
+            return View(pagedArticles);
         }
 
         [HttpGet]

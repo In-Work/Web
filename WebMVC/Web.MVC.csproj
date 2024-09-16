@@ -18,6 +18,8 @@
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.5" />
     <PackageReference Include="System.ServiceModel.Syndication" Version="8.0.0" />
+    <PackageReference Include="X.PagedList" Version="10.0.3" />
+    <PackageReference Include="X.Web.PagedList" Version="10.1.2" />
   </ItemGroup>
 
   <ItemGroup>
