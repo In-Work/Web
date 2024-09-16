@@ -237,7 +237,7 @@ namespace Web.MVC.Controllers
                                 if (imgEndIndex != -1)
                                 {
                                     var imgTag = description.Substring(imgStartIndex, imgEndIndex - imgStartIndex + 1);
-                                    var newImgTag = imgTag.Replace("src=", "style=\"width: 400px; height: 300px; object-fit: cover;\" src=");
+                                    var newImgTag = imgTag.Replace("src=", "style=\"max-width: 100%; border-radius: 4px; height: auto; object-fit: contain;\" src=");
                                     description = description.Replace(imgTag, newImgTag);
                                 }
                             }

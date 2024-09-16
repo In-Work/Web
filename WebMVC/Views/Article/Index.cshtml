@@ -18,11 +18,13 @@
             {
                 <div class="col">
                     <div class="card h-100 shadow-sm">
-                        <div class="card-body">
-                            <h5 class="card-title">@article.Title</h5>
+                        <div class="card-header">
+                            <h6 class="card-title m-2">@article.Title</h6>
+                        </div>
+                        <div class="card-body m-2">
                             <p class="card-text">@Html.Raw(article.Description)</p>
                         </div>
-                        <div class="card-footer bg-transparent border-top-0">
+                        <div class="card-footer bg-transparent border-top-0 mb-2">
                             <a class="btn btn-outline-secondary w-100" asp-route-articleId="@article.Id" asp-action="Details" asp-controller="Article">Details</a>
                         </div>
                     </div>

@@ -1,42 +1,61 @@
-﻿@model ArticleWithCommentsModel
+﻿@using Microsoft.IdentityModel.Tokens
+@model ArticleWithCommentsModel
 
 @{
     ViewData["Title"] = "Article Details";
-    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="container mt-4">
-    <h1 class="mb-4">@Model.ArticleModel.Title</h1>
     <div class="card shadow-sm mb-4">
+        <h1 class="p-3">@Model.ArticleModel.Title</h1>
         <div class="card-body">
             <p class="card-text">@Html.Raw(Model.ArticleModel.Description)</p>
             <p class="card-text">@Html.Raw(Model.ArticleModel.Text)</p>
         </div>
     </div>
-
-    <h3>Comments</h3>
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            @foreach (var comment in Model.CommentsModels)
-            {
-                <div class="mb-3">
-                    <strong>@comment.Id</strong>
-                    <p>@comment.Text</p>
-                    <small class="text-muted">@comment.Date.ToString("g")</small>
+    
+    <div class="card shadow-sm p-3">
+        <h4 class="p-3">Comments:</h4>
+        @if (!Model.CommentsModels.IsNullOrEmpty())
+        {
+                @foreach (var comment in Model.CommentsModels)
+                {
+                <div class="card m-1 bg-light">
+                        <div class=" p-2 d-flex align-items-center gap-2">
+                            <h4>[--]</h4>
+                        <div>@comment.Id</div>
+                        </div>
+                        <div class="">
+                            <small class="text-muted">@comment.Date.ToString("dd MMMM hh:mm ")</small>
+                        </div>
+                        <div class=" card m-2 p-2">
+                            @comment.Text
+                        </div>
+                    </div>
+                }
+        }
+        else
+        {
+            <div class="card-body">
+                <div class="">
+                    <p>No comments</p>
                 </div>
-                <hr />
-            }
-        </div>
+            </div>
+        }
+       
+        @if (Context.User.Identity != null && Context.User.Identity.IsAuthenticated)
+        {
+            <hr/>
+            <form asp-action="AddComment" method="post">
+                <input type="hidden" name="articleId" value="@Model.ArticleModel.Id"/>
+                <div class="form-group mb-3">
+                    <label for="commentText" class="form-label h4 p-2">Add a comment</label>
+                    <textarea name="commentText" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-secondary w-100">Submit</button>
+                </div>
+            </form>
+        }
     </div>
-
-    <form asp-action="AddComment" method="post" class="mb-4">
-        <input type="hidden" name="articleId" value="@Model.ArticleModel.Id" />
-        <div class="form-group mb-3">
-            <label for="commentText" class="form-label">Add a comment</label>
-            <textarea name="commentText" class="form-control" rows="3"></textarea>
-        </div>
-        <div class="form-group">
-            <button type="submit" class="btn btn-secondary w-100">Submit</button>
-        </div>
-    </form>
 </div>
