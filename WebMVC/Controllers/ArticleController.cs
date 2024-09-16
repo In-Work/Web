@@ -9,16 +9,19 @@ using Web.Data;
 using Web.Data.Entities;
 using Web.Mapper;
 using Web.Models;
+using Microsoft.Extensions.Logging;
 
 namespace Web.MVC.Controllers
 {
     public class ArticleController : Controller
     {
         private readonly ApplicationContext _context;
+        private readonly ILogger<ArticleController> _logger;
 
-        public ArticleController(ApplicationContext context)
+        public ArticleController(ApplicationContext context, ILogger<ArticleController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -27,7 +30,8 @@ namespace Web.MVC.Controllers
             var articles = await _context.Articles
                 .AsNoTracking()
                 .Include(a => a.Source)
-                .ToListAsync();
+                .ToListAsync()
+                .ConfigureAwait(false);
 
             var models = ApplicationMapper.ArticleListToArticleModelList(articles);
             return View(models);
@@ -39,13 +43,15 @@ namespace Web.MVC.Controllers
             var article = await _context.Articles
                 .AsNoTracking()
                 .Include(a => a.Source)
-                .FirstOrDefaultAsync(a => a.Id.Equals(articleId));
+                .FirstOrDefaultAsync(a => a.Id == articleId)
+                .ConfigureAwait(false);
 
             var comments = await _context.Comments
                 .AsNoTracking()
-                .Where(c => c.ArticleId.Equals(articleId))
+                .Where(c => c.ArticleId == articleId)
                 .Include(c => c.User)
-                .ToListAsync();
+                .ToListAsync()
+                .ConfigureAwait(false);
 
             if (article != null)
             {
@@ -65,8 +71,13 @@ namespace Web.MVC.Controllers
         public async Task<IActionResult> AddComment(Guid articleId, string commentText)
         {
             var article = await _context.Articles
-                .Where(a => a.Id.Equals(articleId))
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(a => a.Id == articleId)
+                .ConfigureAwait(false);
+
+            if (article == null)
+            {
+                return NotFound();
+            }
 
             Guid.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId);
 
@@ -78,10 +89,10 @@ namespace Web.MVC.Controllers
                 UserId = userId
             };
 
-            await _context.Comments.AddAsync(comment);
-            await _context.SaveChangesAsync();
+            await _context.Comments.AddAsync(comment).ConfigureAwait(false);
+            await _context.SaveChangesAsync().ConfigureAwait(false);
 
-            return RedirectToAction("Details", new {articleId = articleId});
+            return RedirectToAction("Details", new { articleId });
         }
 
         [HttpPost]
@@ -89,25 +100,26 @@ namespace Web.MVC.Controllers
         {
             var article = await _context.Articles
                 .AsNoTracking()
-                .Where(a => a.Id.Equals(articleId))
-                .SingleOrDefaultAsync();
-
-            var comments = await _context.Comments
-                .AsNoTracking()
-                .Include(c => c.User)
-                .ToListAsync();
+                .SingleOrDefaultAsync(a => a.Id == articleId)
+                .ConfigureAwait(false);
 
             if (article == null)
             {
                 return NotFound();
             }
 
+            var comments = await _context.Comments
+                .AsNoTracking()
+                .Include(c => c.User)
+                .ToListAsync()
+                .ConfigureAwait(false);
+
             var commentsModels = ApplicationMapper.CommentsModelsToCommentsList(comments);
             var articleModel = ApplicationMapper.ArticleToArticleModel(article);
 
             foreach (var commentModel in commentsModels)
             {
-                commentModel.IsEditing = commentModel.Id.Equals(commentId);
+                commentModel.IsEditing = commentModel.Id == commentId;
             }
 
             var articleWithCommentsModel = new ArticleWithCommentsModel
@@ -123,10 +135,10 @@ namespace Web.MVC.Controllers
         public async Task<IActionResult> UpdateComment(Guid articleId, Guid commentId, string commentText = "")
         {
             var comment = await _context.Comments
-                .Where(c => c.Id.Equals(commentId))
                 .Include(c => c.Article)
                 .Include(c => c.User)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(c => c.Id == commentId)
+                .ConfigureAwait(false);
 
             if (comment == null)
             {
@@ -134,21 +146,23 @@ namespace Web.MVC.Controllers
             }
 
             comment.Text = commentText;
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync().ConfigureAwait(false);
 
-            return RedirectToAction("Details", new { articleId = articleId });
+            return RedirectToAction("Details", new { articleId });
         }
 
         [HttpGet]
         public IActionResult CancelEdit(Guid commentId, Guid articleId)
         {
-            return RedirectToAction("Details", new { articleId = articleId });
+            return RedirectToAction("Details", new { articleId });
         }
 
         [HttpPost]
         public async Task<IActionResult> DeleteComment(Guid commentId, Guid articleId)
         {
-            var comment = await _context.Comments.Where(c => c.Id.Equals(commentId)).FirstOrDefaultAsync();
+            var comment = await _context.Comments
+                .FirstOrDefaultAsync(c => c.Id == commentId)
+                .ConfigureAwait(false);
 
             if (comment == null)
             {
@@ -156,42 +170,54 @@ namespace Web.MVC.Controllers
             }
 
             _context.Comments.Remove(comment);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync().ConfigureAwait(false);
 
-            return RedirectToAction("Details", new { articleId = articleId });
+            return RedirectToAction("Details", new { articleId });
         }
 
         [HttpPost]
         public async Task<IActionResult> Agregate()
         {
-            await getArticlesDataTask();
-            
-            var articlesWithoutText = await _context.Articles
-                .AsNoTracking()
-                .Where(a => string.IsNullOrEmpty(a.Text))
-                .Include(a => a.Source)
-                .ToListAsync();
-
-            foreach (var articleWithoutText in articlesWithoutText)
+            try
             {
-               await getArticlesTextTask(articleWithoutText);
-            }
+                await getArticlesDataTask().ConfigureAwait(false);
 
-            return View("Index");
+                var articlesWithoutText = await _context.Articles
+                    .AsNoTracking()
+                    .Where(a => string.IsNullOrEmpty(a.Text))
+                    .Include(a => a.Source)
+                    .ToListAsync()
+                    .ConfigureAwait(false);
+
+                foreach (var articleWithoutText in articlesWithoutText)
+                {
+                    await getArticlesTextTask(articleWithoutText).ConfigureAwait(false);
+                }
+
+                return View("Index");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during aggregation");
+                return StatusCode(500, "Internal server error");
+            }
         }
 
         private async Task getArticlesDataTask()
         {
-            var sources = await _context.Sources.Where(s => !string.IsNullOrEmpty(s.RssUrl)).ToListAsync();
+            var sources = await _context.Sources
+                .Where(s => !string.IsNullOrEmpty(s.RssUrl))
+                .ToListAsync()
+                .ConfigureAwait(false);
 
-           
-            foreach (var Source in sources)
+            foreach (var source in sources)
             {
-                if(string.IsNullOrEmpty(Source.RssUrl)){
-                    break;
+                if (string.IsNullOrEmpty(source.RssUrl))
+                {
+                    continue;
                 }
 
-                using (var xmlReader = XmlReader.Create(Source.RssUrl))
+                using (var xmlReader = XmlReader.Create(source.RssUrl))
                 {
                     var syndicationFeed = SyndicationFeed.Load(xmlReader);
 
@@ -218,13 +244,13 @@ namespace Web.MVC.Controllers
                             Id = Guid.NewGuid(),
                             Title = item.Title.Text,
                             Description = description,
-                            SourceId = Source.Id,
+                            SourceId = source.Id,
                             OriginalUrl = item.Id
                         };
-                    } ).ToList();
+                    }).ToList();
 
                     _context.Articles.AddRange(articles);
-                    await _context.SaveChangesAsync();
+                    await _context.SaveChangesAsync().ConfigureAwait(false);
                 }
             }
         }
@@ -242,35 +268,32 @@ namespace Web.MVC.Controllers
             switch (article.Source.Title)
             {
                 case "onliner.by":
-                {
                     selector = "//div[@class='news-text']";
-                } break;
-
+                    break;
                 case "positivnews.ru":
-                {
                     selector = "//div[@itemprop='articleBody']";
-                } break;
-
+                    break;
                 case "habr.com":
-                {
                     selector = "//div[@class='tm-article-body']";
-                } break;
+                    break;
             }
 
-            var htmlDocument = web.Load(article.OriginalUrl);
+            var htmlDocument = await web.LoadFromWebAsync(article.OriginalUrl).ConfigureAwait(false);
             var articleNode = htmlDocument.DocumentNode.SelectSingleNode(selector);
 
             if (articleNode != null)
             {
-
                 var innerText = articleNode.InnerText;
                 var cleanedText = WebUtility.HtmlDecode(innerText).Trim();
 
-                var existingArticle = await _context.Articles.FirstOrDefaultAsync(a => a.Id == article.Id);
+                var existingArticle = await _context.Articles
+                    .FirstOrDefaultAsync(a => a.Id == article.Id)
+                    .ConfigureAwait(false);
+
                 if (existingArticle != null)
                 {
                     existingArticle.Text = cleanedText;
-                    await _context.SaveChangesAsync();
+                    await _context.SaveChangesAsync().ConfigureAwait(false);
                 }
             }
         }

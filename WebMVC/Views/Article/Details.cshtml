@@ -3,6 +3,20 @@
 <h1>@Model.ArticleModel.Title</h1>
 <p>@Model.ArticleModel.Text</p>
 
+
+
+@if (Context.User.Identity != null && Context.User.Identity.IsAuthenticated)
+{
+    <h3>Add a comment</h3>
+    <form asp-action="AddComment" method="post">
+        <input type="hidden" name="articleId" value="@Model.ArticleModel.Id" />
+        <div class="form-group">
+            <textarea name="commentText" class="form-control" placeholder="Write your comment here"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+}
+
 @if (Model.CommentsModels.Count > 0)
 {
     foreach (var comment in Model.CommentsModels)
@@ -36,12 +50,3 @@ else
 {
     <div>No comments</div>
 }
-
-<h3>Add a comment</h3>
-<form asp-action="AddComment" method="post">
-    <input type="hidden" name="articleId" value="@Model.ArticleModel.Id" />
-    <div class="form-group">
-        <textarea name="commentText" class="form-control" placeholder="Write your comment here"></textarea>
-    </div>
-    <button type="submit" class="btn btn-primary">Submit</button>
-</form>
