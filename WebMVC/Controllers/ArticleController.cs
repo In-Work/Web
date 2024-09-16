@@ -64,7 +64,10 @@ namespace Web.MVC.Controllers
         [HttpPost]
         public async Task<IActionResult> AddComment(Guid articleId, string commentText)
         {
-            var article = await _context.Articles.Where(a => a.Id.Equals(articleId)).FirstOrDefaultAsync();
+            var article = await _context.Articles
+                .Where(a => a.Id.Equals(articleId))
+                .FirstOrDefaultAsync();
+
             Guid.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId);
 
             var comment = new Comment()

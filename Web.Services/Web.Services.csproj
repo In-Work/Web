@@ -7,8 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Abstractions\" />
     <Folder Include="Implementations\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Web.Data\Web.Data.csproj" />
+    <ProjectReference Include="..\Web.Models\Web.Models.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,42 +1,23 @@
-﻿@model UserModel
+﻿@model Web.Models.UserLoginModel
 
-<h1>
-    User Login
-</h1>
+@{
+    ViewData["Title"] = "Login";
+}
 
-<form asp-action="Login" asp-controller="User" method="post" class="row">
-    <div class="mb-2 col-12 col-lg-7">
-        <label class="form-label" asp-for="Name"></label>
-        <input class="form-control" required asp-for="Name" />
-        <span asp-validation-for="Name"></span>
+<h2>@ViewData["Title"]</h2>
+
+<form asp-action="Login" method="post">
+    <div class="form-group">
+        <label asp-for="Email" class="control-label"></label>
+        <input asp-for="Email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
     </div>
-    <div class="mb-2 col-12 col-lg-7">
-        <label class="form-label" asp-for="Email"></label>
-        <input class="form-control" required asp-for="Email"/>
-        <span asp-validation-for="Email"></span>
+    <div class="form-group">
+        <label asp-for="Password" class="control-label"></label>
+        <input asp-for="Password" class="form-control" type="password" />
+        <span asp-validation-for="Password" class="text-danger"></span>
     </div>
-    <div class="mb-2 col-12 col-lg-7">
-        <div>
-            <label class="form-label" asp-for="Password"></label>
-        </div>
-        <div>
-            <input class="form-control" type="password" asp-for="Password" />
-        </div>
-        <div>
-            <span asp-validation-for="Password"></span>
-        </div>
-    </div>
-    <div class="mb-2 col-12 col-lg-7">
-        <div class="row">
-            <button class="btn btn-primary col">Submit</button>
-        </div>
+    <div class="form-group">
+        <button type="submit" class="btn btn-primary">Login</button>
     </div>
 </form>
-
-
-@section Scripts
-{
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
-    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
-}

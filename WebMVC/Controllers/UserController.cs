@@ -5,59 +5,20 @@ using Microsoft.AspNetCore.Mvc;
 using Web.Data.Entities;
 using Web.Data;
 using Web.Models;
+using Web.Services;
+using Web.Services.Implementations;
 
 namespace Web.MVC.Controllers
 {
     public class UserController : Controller
     {
         private readonly ApplicationContext _context;
-        public UserController(ApplicationContext context)
+        private readonly IUserService _userService;
+
+        public UserController(ApplicationContext context, IUserService userService)
         {
             _context = context;
-        }
-
-        [HttpGet]
-        public IActionResult Login()
-        {
-            return View();
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Login(UserModel model, CancellationToken token = default)
-        {
-            var password = "123";
-            var email = "test";
-
-            var userId = _context.Users.FirstOrDefault(u => u.Email.Equals(email))?.Id.ToString();
-
-            if (model.Password.Equals(password) && model.Email.Equals(email) && userId != null)
-            {
-                var userRole = "Admin";
-
-                var claims = new List<Claim>()
-                {
-                    new Claim(ClaimTypes.NameIdentifier, userId),
-                    new Claim(ClaimTypes.Name, model.Name),
-                    new Claim(ClaimTypes.Email, model.Email),
-                    new Claim(ClaimTypes.Role, userRole)
-                };
-
-                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                var principal = new ClaimsPrincipal(identity);
-
-                await HttpContext.SignInAsync(principal);
-                return RedirectToAction("Index", "Article");
-            }
-
-            return View(model);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> Logout()
-        {
-            await HttpContext.SignOutAsync();
-
-            return RedirectToAction("Index", "Home");
+            _userService = userService;
         }
 
         [HttpGet]
@@ -67,26 +28,60 @@ namespace Web.MVC.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Register(UserModel model, CancellationToken token = default)
+        public async Task<IActionResult> Register(UserRegisterModel model, CancellationToken token = default)
         {
             if (ModelState.IsValid)
             {
-                var user = new User
-                {
-                    Id = Guid.NewGuid(),
-                    Name = model.Name,
-                    Email = model.Email,
-                    PasswordHash = model.Password 
-                    // В реальном приложении пароль должен быть захеширован
-                };
-
-                _context.Users.Add(user);
-                await _context.SaveChangesAsync(token);
-
+                await _userService.RegisterUserAsync(model, token);
                 return RedirectToAction("Login");
             }
 
             return View(model);
+        }
+
+        [HttpGet]
+        public IActionResult Login()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Login(UserLoginModel model, CancellationToken token = default)
+        {
+            var isEmailRegistered = await _userService.CheckIsEmailRegisteredAsync(model.Email, token);
+            var isPasswordCorrect = await _userService.CheckPassword(model.Email, model.Password, token);
+            var userId = (await _userService.GetUserIdByEmailAsync(model.Email, token)).ToString();
+
+            if (isEmailRegistered && isPasswordCorrect && userId != null)
+            {
+                var userRoles = await _userService.GetUserRolesByEmailAsync(model.Email, token);
+
+                var claims = new List<Claim>()
+                {
+                    new Claim(ClaimTypes.NameIdentifier, userId),
+                    new Claim(ClaimTypes.Email, model.Email),
+                };
+
+                claims.AddRange(userRoles.Select(role => new Claim(ClaimTypes.Role, role)));
+
+                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                var principal = new ClaimsPrincipal(identity);
+
+                await HttpContext.SignInAsync(principal);
+
+                return RedirectToAction("Index", "Home");
+            }
+
+            ModelState.AddModelError("", "Incorrect Email or Password");
+            return View(model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Logout()
+        {
+            await HttpContext.SignOutAsync();
+
+            return RedirectToAction("Index", "Home");
         }
     }
 }
