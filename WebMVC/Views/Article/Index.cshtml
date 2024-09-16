@@ -8,7 +8,7 @@
     <h1 class="mb-4">@ViewData["Title"]</h1>
 
     <form asp-action="Agregate" method="post" class="mb-4">
-        <button class="btn btn-primary" type="submit">Aggregate</button>
+        <button class="btn btn-secondary" type="submit">Aggregate</button>
     </form>
 
     @if (Model.Any())
@@ -17,27 +17,29 @@
             @foreach (var article in Model)
             {
                 <div class="col">
-                    <div class="card h-100">
+                    <div class="card h-100 shadow-sm">
                         <div class="card-body">
                             <h5 class="card-title">@article.Title</h5>
                             <p class="card-text">@Html.Raw(article.Description)</p>
                         </div>
-                        <div class="card-footer">
-                            <a class="btn btn-primary" asp-route-articleId="@article.Id" asp-action="Details" asp-controller="Article">Details</a>
+                        <div class="card-footer bg-transparent border-top-0">
+                            <a class="btn btn-outline-secondary w-100" asp-route-articleId="@article.Id" asp-action="Details" asp-controller="Article">Details</a>
                         </div>
                     </div>
                 </div>
             }
         </div>
 
-        <div class="pagination">
-            @Html.PagedListPager(Model, page => Url.Action("Index", new { page }), new PagedListRenderOptions
-            {
-                LiElementClasses = new[] { "page-item" },
-                PageClasses = new[] { "page-link" },
-                MaximumPageNumbersToDisplay = 3
-            })
-        </div>
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                @Html.PagedListPager(Model, page => Url.Action("Index", new { page }), new PagedListRenderOptions
+                {
+                    LiElementClasses = new[] { "page-item" },
+                    PageClasses = new[] { "page-link" },
+                    MaximumPageNumbersToDisplay = 3
+                })
+            </ul>
+        </nav>
     }
     else
     {
