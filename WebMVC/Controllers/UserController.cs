@@ -28,13 +28,21 @@ namespace Web.MVC.Controllers
         [HttpPost]
         public async Task<IActionResult> Register(UserRegisterModel model, CancellationToken token = default)
         {
+            if (await _userService.CheckIsEmailRegisteredAsync(model.Email, token))
+            {
+                ModelState.AddModelError(nameof(model.Email), "Email has been registered already");
+                return View();
+            }
+            
             if (ModelState.IsValid)
             {
                 await _userService.RegisterUserAsync(model, token);
                 return RedirectToAction("Login");
             }
-
-            return View(model);
+            else
+            {
+                return View();
+            }
         }
 
         [HttpGet]
@@ -49,6 +57,18 @@ namespace Web.MVC.Controllers
             var isEmailRegistered = await _userService.CheckIsEmailRegisteredAsync(model.Email, token);
             var isPasswordCorrect = await _userService.CheckPassword(model.Email, model.Password, token);
             var userId = (await _userService.GetUserIdByEmailAsync(model.Email, token)).ToString();
+
+            if (!isEmailRegistered)
+            {
+                ModelState.AddModelError(nameof(model.Email), "Incorrect Email or UserName");
+                return View();
+            }
+
+            if (!isPasswordCorrect)
+            {
+                ModelState.AddModelError(nameof(model.Password), "Incorrect Password");
+                return View();
+            }
 
             if (isEmailRegistered && isPasswordCorrect && userId != null)
             {
