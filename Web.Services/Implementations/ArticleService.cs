@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 using Web.Data;
 using Web.Data.Entities;
 using Web.Services.Abstractions;
@@ -14,7 +15,7 @@ namespace Web.Services.Implementations
             _context = context;
         }
 
-        public async Task<List<Article>> GetArticlesAsync(CancellationToken token = default)
+        public async Task<List<Article>?> GetArticlesAsync(CancellationToken token = default)
         {
             return await _context.Articles
                 .AsNoTracking()
@@ -28,10 +29,19 @@ namespace Web.Services.Implementations
         {
             return await _context.Articles
                 .AsNoTracking()
-                .Include(a => a.Source)
-                .Include(a => a.Comments)
+                .Where(a => a.Id.Equals(articleId))
+                .Include(a => a.Comments)!
                 .ThenInclude(c => c.User)
-                .FirstOrDefaultAsync(a => a.Id.Equals(articleId), token);
+                .Include(a => a.Source)
+                .FirstOrDefaultAsync(token);
+        }
+
+        public async Task<List<Comment>?> GetCommentsByArticleId(Guid articleId, CancellationToken token = default)
+        {
+            return await _context.Comments
+                .Where(c => c.ArticleId == articleId)
+                .ToListAsync(token)
+                .ConfigureAwait(false);
         }
     }
 }

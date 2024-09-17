@@ -17,16 +17,18 @@ namespace Web.MVC
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IArticleService, ArticleService>();
-
+            builder.Services.AddScoped<ICommentService, CommentService>();
+            
             builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(opt =>
             {
                 opt.LoginPath = "/User/Login";
             });
-            builder.Services.AddAuthorization();
 
+            builder.Services.AddAuthorization();
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

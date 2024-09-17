@@ -17,7 +17,7 @@ public class UserService : IUserService
         _context = context;
     }
 
-    public async Task RegisterUserAsync(UserRegisterModel userModel, CancellationToken token)
+    public async Task RegisterUserAsync(UserRegisterModel userModel, CancellationToken token = default)
     {
         var userRole = await _context.Roles
             .SingleOrDefaultAsync(r => r.RoleName.Equals("User"), token);
@@ -44,7 +44,7 @@ public class UserService : IUserService
         }
     }
 
-    public async Task<bool> CheckPassword(string email, string password, CancellationToken token)
+    public async Task<bool> CheckPassword(string email, string password, CancellationToken token = default)
     {
         var user = await _context.Users
             .SingleOrDefaultAsync(u => u.Email.Equals(email), cancellationToken: token);
@@ -65,14 +65,14 @@ public class UserService : IUserService
         return hashedPassword;
     }
 
-    public async Task<bool> CheckIsEmailRegisteredAsync(string email, CancellationToken token)
+    public async Task<bool> CheckIsEmailRegisteredAsync(string email, CancellationToken token = default)
     {
         var result = await _context.Users
             .AnyAsync(user => user.Email.Equals(email), token);
         return result;
     }
 
-    public async Task<Guid?> GetUserIdByEmailAsync(string email, CancellationToken token)
+    public async Task<Guid?> GetUserIdByEmailAsync(string email, CancellationToken token = default)
     {
         return await _context.Users
             .Where(u => u.Email.Equals(email))
@@ -88,7 +88,7 @@ public class UserService : IUserService
             .FirstOrDefaultAsync(u => u.Email == email, token);
 
         if (user == null) throw new Exception("User not found");
-        var userRole = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == roleName, token);
+        var userRole = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == roleName, token = default);
 
         if (userRole == null) throw new Exception("Role not found");
         if (user.UserRoles.All(ur => ur.Id != userRole.Id))

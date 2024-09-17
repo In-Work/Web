@@ -1,10 +1,12 @@
-﻿using System.Net;
+﻿using System.Linq;
+using System.Net;
 using System.Security.Claims;
 using System.ServiceModel.Syndication;
 using System.Xml;
 using HtmlAgilityPack;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NuGet.Common;
 using Web.Data;
 using Web.Data.Entities;
 using Web.Mapper;
@@ -18,13 +20,18 @@ namespace Web.MVC.Controllers
     {
         private readonly ApplicationContext _context;
         private readonly IArticleService _articleService;
+        private readonly ICommentService _commentService;
         private readonly ILogger<ArticleController> _logger;
 
-        public ArticleController(ApplicationContext context, ILogger<ArticleController> logger, IArticleService articleService)
+        public ArticleController(ApplicationContext context, 
+            ILogger<ArticleController> logger, 
+            IArticleService articleService, 
+            ICommentService commentService)
         {
             _context = context;
             _logger = logger;
             _articleService = articleService;
+            _commentService = commentService;
         }
 
         [HttpGet]
@@ -32,6 +39,7 @@ namespace Web.MVC.Controllers
         {
             var pageSize = 20;
             var pageNumber = page ?? 1;
+
             var articles = await _articleService.GetArticlesAsync(token);
             var models = ApplicationMapper.ArticleListToArticleModelList(articles);
             var pagedArticles = models.ToPagedList(pageNumber, pageSize);
@@ -44,66 +52,35 @@ namespace Web.MVC.Controllers
         {
             var article = await _articleService.GetArticleByIdAsync(articleId, token);
 
-            if (article == null)
+            if (article != null)
             {
-                return NotFound();
+                var articleWithCommentsModels = new ArticleWithCommentsModel()
+                {
+                    ArticleModel = ApplicationMapper.ArticleToArticleModel(article),
+                    CommentsModels = ApplicationMapper.CommentsModelsToCommentsList(article.Comments)
+                };
+
+                return View(articleWithCommentsModels);
             }
 
-            var articleWithCommentsModels = new ArticleWithCommentsModel()
-            {
-                ArticleModel = ApplicationMapper.ArticleToArticleModel(article),
-                CommentsModels = ApplicationMapper.CommentsModelsToCommentsList(article.Comments)
-            };
-
-            return View(articleWithCommentsModels);
+            return NotFound();
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddComment(Guid articleId, string commentText)
+        public async Task<IActionResult> AddComment(Guid articleId, string commentText, CancellationToken token = default)
         {
-            var article = await _context.Articles
-                .FirstOrDefaultAsync(a => a.Id == articleId)
-                .ConfigureAwait(false);
-
-            if (article == null)
-            {
-                return NotFound();
-            }
-
-            Guid.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId);
-
-            var comment = new Comment()
-            {
-                Date = DateTime.Now,
-                Text = commentText,
-                ArticleId = articleId,
-                UserId = userId
-            };
-
-            await _context.Comments.AddAsync(comment).ConfigureAwait(false);
-            await _context.SaveChangesAsync().ConfigureAwait(false);
-
+            var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            Guid.TryParse(userIdString, out var userId);
+            await _commentService.AddCommentByArticleIdAsync(articleId, userId, commentText, token);
             return RedirectToAction("Details", new { articleId });
         }
 
         [HttpPost]
-        public async Task<IActionResult> EditComment(Guid commentId, Guid articleId)
+        public async Task<IActionResult> EditComment(Guid commentId, CancellationToken token = default)
         {
-            var article = await _context.Articles
-                .AsNoTracking()
-                .SingleOrDefaultAsync(a => a.Id == articleId)
-                .ConfigureAwait(false);
-
-            if (article == null)
-            {
-                return NotFound();
-            }
-
-            var comments = await _context.Comments
-                .AsNoTracking()
-                .Include(c => c.User)
-                .ToListAsync()
-                .ConfigureAwait(false);
+            var comment = await _commentService.GetCommentById(commentId, token);
+            var article = await _articleService.GetArticleByIdAsync(comment!.ArticleId, token);
+            var comments = await _commentService.GetCommentsByArticleId(comment.ArticleId, token);
 
             var commentsModels = ApplicationMapper.CommentsModelsToCommentsList(comments);
             var articleModel = ApplicationMapper.ArticleToArticleModel(article);
@@ -143,7 +120,7 @@ namespace Web.MVC.Controllers
         }
 
         [HttpGet]
-        public IActionResult CancelEdit(Guid commentId, Guid articleId)
+        public IActionResult CancelEdit(Guid articleId)
         {
             return RedirectToAction("Details", new { articleId });
         }
