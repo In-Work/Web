@@ -55,4 +55,16 @@ public class CommentService : ICommentService
             .FirstOrDefaultAsync(token)
             .ConfigureAwait(false);
     }
+
+    public async Task DeleteCommentById(Guid commentId, CancellationToken token)
+    {
+        var comment = await _context.Comments
+            .FirstOrDefaultAsync(c => c.Id == commentId, token);
+
+        if (comment != null)
+        {
+            _context.Comments.Remove(comment);
+            await _context.SaveChangesAsync(token);
+        }
+    }
 }

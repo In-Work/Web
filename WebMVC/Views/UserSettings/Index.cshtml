@@ -1,0 +1,23 @@
+@model Web.Models.UserSettingsModel
+
+@{
+    ViewData["Title"] = "User Settings";
+}
+
+<h2>User Settings</h2>
+
+<form asp-action="Save" method="post">
+    <div>
+        <label asp-for="UserName"></label>
+        <input asp-for="UserName" />
+    </div>
+    <div>
+        <label asp-for="Password"></label>
+        <input asp-for="Password" type="password" />
+    </div>
+    <div>
+        <label asp-for="Email"></label>
+        <input asp-for="Email" type="email" />
+    </div>
+    <button type="submit">Save</button>
+</form>

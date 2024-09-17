@@ -14,5 +14,6 @@ namespace Web.Services.Abstractions
         Task AddCommentByArticleIdAsync(Guid articleId, Guid userId, string commentText, CancellationToken token);
         Task<Comment?> GetCommentById(Guid commentId, CancellationToken token);
         Task<List<Comment>?> GetCommentsByArticleId(Guid articleId, CancellationToken token);
+        Task DeleteCommentById(Guid commentId, CancellationToken token);
     }
 }

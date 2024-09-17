@@ -3,10 +3,8 @@ using System.Net;
 using System.Security.Claims;
 using System.ServiceModel.Syndication;
 using System.Xml;
-using HtmlAgilityPack;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using NuGet.Common;
 using Web.Data;
 using Web.Data.Entities;
 using Web.Mapper;
@@ -100,7 +98,7 @@ namespace Web.MVC.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> UpdateComment(Guid articleId, Guid commentId, string commentText = "")
+        public async Task<IActionResult> UpdateComment(Guid articleId, Guid commentId, string commentText)
         {
             var comment = await _context.Comments
                 .Include(c => c.Article)
@@ -119,27 +117,16 @@ namespace Web.MVC.Controllers
             return RedirectToAction("Details", new { articleId });
         }
 
-        [HttpGet]
+        [HttpPost]
         public IActionResult CancelEdit(Guid articleId)
         {
             return RedirectToAction("Details", new { articleId });
         }
 
         [HttpPost]
-        public async Task<IActionResult> DeleteComment(Guid commentId, Guid articleId)
+        public async Task<IActionResult> DeleteComment(Guid commentId, Guid articleId, CancellationToken token = default)
         {
-            var comment = await _context.Comments
-                .FirstOrDefaultAsync(c => c.Id == commentId)
-                .ConfigureAwait(false);
-
-            if (comment == null)
-            {
-                return NotFound();
-            }
-
-            _context.Comments.Remove(comment);
-            await _context.SaveChangesAsync().ConfigureAwait(false);
-
+            await _commentService.DeleteCommentById(commentId, token);
             return RedirectToAction("Details", new { articleId });
         }
 

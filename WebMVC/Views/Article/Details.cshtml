@@ -21,7 +21,7 @@
             <form asp-action="AddComment" method="post">
                 <input type="hidden" name="articleId" value="@Model.ArticleModel.Id"/>
                 <div class="form-group mb-3">
-                    <textarea name="commentText" placeholder="Add a public comment..." class="form-control" rows="3"></textarea>
+                    <textarea name="commentText" required placeholder="Add a public comment..." class="form-control" rows="3"></textarea>
                 </div>
                 <div class="form-group">
                     <button type="submit" class="btn btn-secondary w-100">Submit</button>
@@ -51,12 +51,14 @@
                                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
                                     <li>
                                         <form asp-action="EditComment" method="post" style="display:inline;">
+                                            <input type="hidden" name="articleId" value="@Model.ArticleModel.Id" />
                                             <input type="hidden" name="commentId" value="@comment.Id" />
                                             <button type="submit" class="dropdown-item">Edit</button>
                                         </form>
                                     </li>
                                     <li>
                                         <form asp-action="DeleteComment" method="post" style="display:inline;">
+                                            <input type="hidden" name="articleId" value="@Model.ArticleModel.Id" />
                                             <input type="hidden" name="commentId" value="@comment.Id" />
                                             <button type="submit" class="dropdown-item">Delete</button>
                                         </form>
@@ -71,19 +73,33 @@
                 }
                 else
                 {
-                    <form asp-action="UpdateComment" method="post">
-                        <input type="hidden" name="articleId" value="@Model.ArticleModel.Id"/>
-                        <div class="form-group mb-3">
-                            <textarea name="commentText" class="form-control" rows="3"></textarea>
+                    <div class="card bg-light mb-3">
+                        <div class="card-header d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center gap-2">
+                                <img style="width: 40px; height: 40px; border-radius: 50%;" draggable="false" src="https://yt3.ggpht.com/a/default-user=s88-c-k-c0x00ffffff-no-rj" />
+                                <div>
+                                    <div class="h5 mb-0">@comment.UserName</div>
+                                    <div class="text-muted">@comment.PublicationDateTime.ToString("dd MMM, hh:mm ")</div>
+                                </div>
+                            </div>
+                            <form asp-action="CancelEdit" asp-controller="Article" method="post">
+                                <input type="hidden" name="articleId" value="@Model.ArticleModel.Id" />
+                                <button type="submit" class="btn btn-close"></button>
+                            </form>
                         </div>
-                        <div class="form-group">
-                            <button type="submit" class="btn btn-secondary w-100">Submit</button>
-                        </div>
-                    </form>
-                    <form asp-action="CancelEdit" method="get" style="display:inline;">
-                        <input type="hidden" name="articleId" value="@Model.ArticleModel.Id" />
-                        <button type="submit" class="dropdown-item">Cancel</button>
-                    </form>
+                        <form asp-action="UpdateComment" asp-controller="Article" method="post">
+                            <div class="card-body ms-2">
+                                <input type="hidden" name="articleId" value="@Model.ArticleModel.Id" />
+                                <input type="hidden" name="commentId" value="@comment.Id" />
+                                <div class="form-group mb-3">
+                                    <textarea name="commentText" required class="form-control" rows="3">@comment.Text</textarea>
+                                </div>
+                                <div>
+                                    <button type="submit" class="btn btn-secondary">Save</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
                 }
             }
         }
