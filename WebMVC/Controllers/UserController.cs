@@ -1,7 +1,10 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 using Web.Data;
 using Web.Models;
 using Web.Services.Abstractions;
@@ -55,7 +58,7 @@ namespace Web.MVC.Controllers
         public async Task<IActionResult> Login(UserLoginModel model, CancellationToken token = default)
         {
             var isEmailRegistered = await _userService.CheckIsEmailRegisteredAsync(model.Email, token);
-            var isPasswordCorrect = await _userService.CheckPassword(model.Email, model.Password, token);
+            var isPasswordCorrect = await _userService.CheckPasswordAsync(model.Email, model.Password, token);
             var userId = (await _userService.GetUserIdByEmailAsync(model.Email, token)).ToString();
 
             if (!isEmailRegistered)
@@ -73,6 +76,7 @@ namespace Web.MVC.Controllers
             if (isEmailRegistered && isPasswordCorrect && userId != null)
             {
                 var userRoles = await _userService.GetUserRolesByEmailAsync(model.Email, token);
+                //TODO: checking user login with multiple roles
 
                 var claims = new List<Claim>()
                 {
@@ -100,6 +104,64 @@ namespace Web.MVC.Controllers
             await HttpContext.SignOutAsync();
 
             return RedirectToAction("Index", "Home");
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordModel model, CancellationToken token = default)
+        {
+            var isEmailCorrect = await _userService.CheckIsEmailRegisteredAsync(model.Email, token);
+
+            if (!isEmailCorrect)
+            {
+                ModelState.AddModelError(nameof(model.Email), "Incorrect email adress!");
+                return View();
+            }
+
+            if (ModelState.IsValid)
+            {  
+                return View("ForgotPasswordConfirmation");
+            }
+
+            //TODO email comform
+            ModelState.AddModelError(nameof(model.Email), "Incorrect email adress!");
+            return View(model);
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ResetPassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetPassword(ResetPasswordModel model, CancellationToken token)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var isEmailRegistered = await _userService.CheckIsEmailRegisteredAsync(model.Email, token);
+
+            if (isEmailRegistered)
+            {
+                await _userService.ResetPasswordAsync(model.Email, model.Password, token);
+                return View("ResetPasswordConfirmation");
+            }
+
+            return View(model);
         }
     }
 }

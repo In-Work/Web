@@ -17,6 +17,21 @@ public class UserService : IUserService
         _context = context;
     }
 
+    public async Task ResetPasswordAsync(string email, string password, CancellationToken token = default)
+    {
+        var user = await GetUserByEmailAsync(email, token);
+
+        if (user != null)
+        {
+            var secStamp = Guid.NewGuid().ToString("N");
+            var passwordHash = await GetPasswordHash(password, secStamp);
+
+            user.SecurityStamp = secStamp;
+            user.PasswordHash = passwordHash;
+            await _context.SaveChangesAsync(token);
+        }
+    }
+
     public async Task RegisterUserAsync(UserRegisterModel userModel, CancellationToken token = default)
     {
         var userRole = await _context.Roles
@@ -44,7 +59,7 @@ public class UserService : IUserService
         }
     }
 
-    public async Task<bool> CheckPassword(string email, string password, CancellationToken token = default)
+    public async Task<bool> CheckPasswordAsync(string email, string password, CancellationToken token = default)
     {
         var user = await _context.Users
             .SingleOrDefaultAsync(u => u.Email.Equals(email), cancellationToken: token);
@@ -77,6 +92,14 @@ public class UserService : IUserService
         return await _context.Users
             .Where(u => u.Email.Equals(email))
             .Select(u => u.Id)
+            .FirstOrDefaultAsync(token);
+    }
+
+    public async Task<User?> GetUserByEmailAsync(string email, CancellationToken token = default)
+    {
+        return await _context.Users
+            .Where(u => u.Email.Equals(email))
+            .Include(u => u.UserRoles)
             .FirstOrDefaultAsync(token);
     }
 
