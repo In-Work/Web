@@ -1,5 +1,6 @@
 ﻿using Riok.Mapperly.Abstractions;
 using Web.Data.Entities;
+using Web.DTOs;
 using Web.Models;
 
 namespace Web.Mapper
@@ -15,5 +16,14 @@ namespace Web.Mapper
 
         [MapProperty(nameof(Comment.User.Name), nameof(CommentModel.UserName))]
         public static partial List<CommentModel> CommentsModelsToCommentsList(List<Comment>? commentsList);
+
+        [MapProperty(nameof(Article.Id), nameof(ArticleDto.Id))]
+        [MapProperty([nameof(Article.Source), nameof(Article.Source.Title)],
+            [nameof(ArticleDto.SourceName)])]
+        public static partial ArticleDto? ArticleToArticleDto(Article? article);
+
+        [MapProperty(nameof(ArticleDto.Id), nameof(ArticleModel.Id))]
+        public static partial ArticleModel? ArticleDtoToArticleModel(ArticleDto? articleDto);
+
     }
 }
