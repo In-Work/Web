@@ -7,7 +7,6 @@ namespace Web.Data
     {
         public ApplicationContext(DbContextOptions options) : base(options)
         {
-            this.ChangeTracker.LazyLoadingEnabled = false;
         }
 
         public DbSet<Article> Articles { get; set; }
@@ -16,6 +15,6 @@ namespace Web.Data
         public DbSet<User> Users { get; set; }
         public DbSet<Source> Sources { get; set; }
         public DbSet<Item> Items { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
     }
-
 }
