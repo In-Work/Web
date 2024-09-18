@@ -74,8 +74,6 @@ namespace Web.MVC.Controllers
             if (isEmailRegistered && isPasswordCorrect && userId != null)
             {
                 var userRoles = await _userService.GetUserRolesByEmailAsync(model.Email, token);
-                //TODO: checking user login with multiple roles
-
                 var claims = new List<Claim>()
                 {
                     new Claim(ClaimTypes.NameIdentifier, userId),

@@ -25,5 +25,7 @@ namespace Web.Mapper
         [MapProperty(nameof(ArticleDto.Id), nameof(ArticleModel.Id))]
         public static partial ArticleModel? ArticleDtoToArticleModel(ArticleDto? articleDto);
 
+        public static partial Article? ArticleDtoToArticle(ArticleDto? articleDto);
+
     }
 }
