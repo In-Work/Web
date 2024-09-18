@@ -7,6 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="MediatR" Version="12.4.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Web.DataAccess.CQS\Web.DataAccess.CQS.csproj" />
     <ProjectReference Include="..\Web.Data\Web.Data.csproj" />
     <ProjectReference Include="..\Web.Models\Web.Models.csproj" />
   </ItemGroup>

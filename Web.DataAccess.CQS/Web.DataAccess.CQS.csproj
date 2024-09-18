@@ -11,12 +11,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Web.Mapper\Web.Mapper.csproj" />
     <ProjectReference Include="..\Web.Specification\Web.Specification.csproj" />
     <ProjectReference Include="..\Web.Data\Web.Data.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Commands\" />
   </ItemGroup>
 
 </Project>

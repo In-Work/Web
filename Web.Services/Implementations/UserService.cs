@@ -1,8 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using MediatR;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using System.Text;
 using Web.Data;
 using Web.Data.Entities;
+using Web.DataAccess.CQS.Queries.User;
+using Web.DTOs;
 using Web.Models;
 using Web.Services.Abstractions;
 
@@ -11,10 +14,12 @@ namespace Web.Services.Implementations;
 public class UserService : IUserService
 {
     private readonly ApplicationContext _context;
+    private readonly IMediator _mediator;
 
-    public UserService(ApplicationContext context)
+    public UserService(ApplicationContext context, IMediator mediator)
     {
         _context = context;
+        _mediator = mediator;
     }
 
     public async Task ResetPasswordAsync(string email, string password, CancellationToken token = default)
@@ -131,5 +136,10 @@ public class UserService : IUserService
         var user = await _context.Users.Include(u => u.UserRoles).FirstOrDefaultAsync(u => u.Email == email, token);
         if (user == null) throw new Exception("User not found");
         return user.UserRoles.Select(ur=>ur.RoleName).ToList();
+    }
+
+    public async Task<UserTokenDto> GetUserDataByRefreshTokenIdAsync(Guid id, CancellationToken token = default)
+    {
+        return await _mediator.Send(new GetUserDataByRefreshTokenQuery() { ToklenId = id }, token);
     }
 }

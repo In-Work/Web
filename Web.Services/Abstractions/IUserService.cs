@@ -1,4 +1,5 @@
 ﻿using Web.Data.Entities;
+using Web.DTOs;
 using Web.Models;
 
 namespace Web.Services.Abstractions;
@@ -13,4 +14,5 @@ public interface IUserService
     Task<User?> GetUserByEmailAsync(string modelEmail, CancellationToken token);
     Task AddRoleToUserAsync(string email, string roleName, CancellationToken token);
     Task<List<string>> GetUserRolesByEmailAsync(string email, CancellationToken token);
+    Task<UserTokenDto> GetUserDataByRefreshTokenIdAsync(Guid refreshTokenId, CancellationToken token);
 }

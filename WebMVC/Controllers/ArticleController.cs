@@ -1,6 +1,4 @@
-﻿using System.Linq;
-using System.Net;
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using System.ServiceModel.Syndication;
 using System.Xml;
 using Microsoft.AspNetCore.Mvc;
