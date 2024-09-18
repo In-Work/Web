@@ -19,7 +19,7 @@ namespace Web.MVC.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Refresh([FromBody] Guid refreshTokenId, CancellationToken token = default)
+        public async Task<IActionResult> RefreshToken(Guid refreshTokenId, CancellationToken token = default)
         {
             var isRefreshTokenCorrect = await _tokenService.CheckIsRefreshTokenCorrectByIdAsync(refreshTokenId, token);
 
@@ -59,6 +59,7 @@ namespace Web.MVC.Controllers
 
             if (!isEmailRegistered || !isPasswordCorrect)
             {
+                ModelState.AddModelError("", "Incorrect email or password!");
                 return View(model);
             }
 
