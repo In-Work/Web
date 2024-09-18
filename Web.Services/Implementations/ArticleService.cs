@@ -115,13 +115,13 @@ namespace Web.Services.Implementations
                 var syndicationFeed = SyndicationFeed.Load(xmlReader);
 
                 var articles = syndicationFeed.Items
-                .Select(it => new ArticleDto()
+                .Select(item => new ArticleDto()
                     {
                         Id = Guid.NewGuid(),
-                        Title = it.Title.Text,
-                        OriginalUrl = it.Id,
-                        Description = it.Summary?.Text,
-                        PublicationDate = it.PublishDate.DateTime,
+                        Title = HtmlEntity.DeEntitize(item.Title.Text),
+                        OriginalUrl = item.Id,
+                        Description = FormatHtmlContent(item.Summary?.Text),
+                        PublicationDate = item.PublishDate.DateTime,
                         SourceId = source.Id,
                         SourceName = source.Title
                     }
@@ -132,6 +132,80 @@ namespace Web.Services.Implementations
                     Articles = articles
                 }, token);
             }
+        }
+
+        private string FormatHtmlContent(string htmlContent)
+        {
+            var doc = new HtmlDocument();
+            doc.LoadHtml(htmlContent);
+
+            var images = doc.DocumentNode.SelectNodes("//img");
+            if (images != null)
+            {
+                foreach (var img in images)
+                {
+                    img.Attributes.Remove("srcset");
+
+                    var dataSrc = img.GetAttributeValue("data-src", null);
+                    if (!string.IsNullOrEmpty(dataSrc))
+                    {
+                        img.SetAttributeValue("src", dataSrc);
+                        img.Attributes.Remove("data-src");
+                    }
+
+                    var style = img.GetAttributeValue("style", string.Empty);
+                    style += "max-width: 100%; height: auto; display: block; margin: 0 auto; border-radius: 4px;";
+                    img.SetAttributeValue("style", style);
+                }
+            }
+
+            var paragraphs = doc.DocumentNode.SelectNodes("//p");
+            if (paragraphs != null)
+            {
+                foreach (var p in paragraphs)
+                {
+                    var style = p.GetAttributeValue("style", string.Empty);
+                    style += "text-align: justify; margin-bottom: 1em;";
+                    p.SetAttributeValue("style", style);
+                }
+            }
+
+            var strongElements = doc.DocumentNode.SelectNodes("//strong");
+            if (strongElements != null)
+            {
+                foreach (var strong in strongElements)
+                {
+                    if (strong.InnerText.StartsWith("Есть о чем рассказать? Пишите в наш"))
+                    {
+                        strong.Remove();
+                    }
+                }
+            }
+
+            var links = doc.DocumentNode.SelectNodes("//a");
+            if (links != null)
+            {
+                foreach (var link in links)
+                {
+                    if (link.InnerText.StartsWith("Читать далее"))
+                    {
+                        link.Remove();
+                    }
+                }
+            }
+
+            var icons = doc.DocumentNode.SelectNodes("//i[@class='pvc-stats-icon medium']");
+            if (icons != null)
+            {
+                foreach (var icon in icons)
+                {
+                    icon.Remove();
+                }
+            }
+
+            var formattedHtml = HtmlEntity.DeEntitize(doc.DocumentNode.OuterHtml);
+
+            return formattedHtml.Trim();
         }
 
         private async Task UpdateTextByWebScrapping(Article? article)
@@ -162,7 +236,7 @@ namespace Web.Services.Implementations
 
                 if (existingArticle != null)
                 {
-                    existingArticle.Text = articleNode.InnerText.Trim();
+                    existingArticle.Text = FormatHtmlContent(articleNode.InnerHtml);
                     await _context.SaveChangesAsync();
                 }
             }
