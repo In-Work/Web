@@ -1,4 +1,4 @@
-@model Web.Models.UserSettingsModel
+@model UserSettingsModel
 
 @{
     ViewData["Title"] = "User Settings";
@@ -6,22 +6,11 @@
 
 <h2>User Settings</h2>
 
-<form asp-action="ResetPassword" asp-controller="User" method="get">
-    <button type="submit">Reset Password</button>
-</form>
+<h2>@Model.UserName</h2>
 
-<form asp-action="Save" method="post">
-    <div>
-        <label asp-for="UserName"></label>
-        <input asp-for="UserName" />
-    </div>
-    <div>
-        <label asp-for="Password"></label>
-        <input asp-for="Password" type="password" />
-    </div>
-    <div>
-        <label asp-for="Email"></label>
-        <input asp-for="Email" type="email" />
-    </div>
-    <button type="submit">Save</button>
+<form asp-action="ChangeMinRank" method="post">
+    <input type="hidden" name="articleId" value="@Model.MinRank" />
+    <input type="number" name="minRank" value="@Model.MinRank" />
+
+    <button type="submit">Submit</button>
 </form>

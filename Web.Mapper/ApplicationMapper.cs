@@ -27,5 +27,9 @@ namespace Web.Mapper
 
         public static partial Article? ArticleDtoToArticle(ArticleDto? articleDto);
 
+
+        [MapProperty(nameof(User.Name), nameof(UserSettingsModel.UserName))]
+        public static partial UserSettingsModel UserToUserSettingsModel(User user);
+
     }
 }

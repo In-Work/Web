@@ -7,6 +7,7 @@
         public string Email { get; set; }
         public string PasswordHash { get; set; }
         public string SecurityStamp { get; set; }
+        public int MinRank { get; set; }
         public List<Role> UserRoles { get; set; } = new List<Role>();
     }
 }

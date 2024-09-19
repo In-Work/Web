@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using System.Text;
+using Microsoft.Extensions.Primitives;
 using Web.Data;
 using Web.Data.Entities;
 using Web.DataAccess.CQS.Queries.User;
@@ -52,15 +53,14 @@ public class UserService : IUserService
                 Name = userModel.Name,
                 Email = userModel.Email,
                 PasswordHash = passwordHash,
-                SecurityStamp = secStamp
+                SecurityStamp = secStamp,
+                MinRank = 1
             };
 
             user.UserRoles.Add(userRole);
 
             await _context.Users.AddAsync(user, token);
             await _context.SaveChangesAsync(token);
-
-            // TODO: to improve: email confirm, sms, etc
         }
     }
 
@@ -141,5 +141,16 @@ public class UserService : IUserService
     public async Task<UserTokenDto> GetUserDataByRefreshTokenIdAsync(Guid id, CancellationToken token = default)
     {
         return await _mediator.Send(new GetUserDataByRefreshTokenQuery() { ToklenId = id }, token);
+    }
+
+    public async Task ChangeMinRankAsync(string userEmail, int minRank, CancellationToken token = default)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email.Equals(userEmail), token);
+
+        if (user != null)
+        {
+            user.MinRank = minRank;
+            await _context.SaveChangesAsync(token);
+        }
     }
 }
