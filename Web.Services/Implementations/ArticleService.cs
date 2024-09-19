@@ -169,6 +169,16 @@ namespace Web.Services.Implementations
                     p.SetAttributeValue("style", style);
                 }
             }
+            var blocks = doc.DocumentNode.SelectNodes("//div");
+            if (blocks != null)
+            {
+                foreach (var b in blocks)
+                {
+                    var style = b.GetAttributeValue("style", string.Empty);
+                    style += "text-align: justify; margin-bottom: 1em;";
+                    b.SetAttributeValue("style", style);
+                }
+            }
 
             var strongElements = doc.DocumentNode.SelectNodes("//strong");
             if (strongElements != null)
@@ -203,6 +213,15 @@ namespace Web.Services.Implementations
                 }
             }
 
+            var scripts = doc.DocumentNode.SelectNodes("//script");
+            if (scripts != null)
+            {
+                foreach (var script in scripts)
+                {
+                    script.Remove();
+                }
+            }
+
             var formattedHtml = HtmlEntity.DeEntitize(doc.DocumentNode.OuterHtml);
 
             return formattedHtml.Trim();
@@ -231,13 +250,17 @@ namespace Web.Services.Implementations
 
             if (articleNode != null)
             {
-                var existingArticle = await _context.Articles
-                    .FirstOrDefaultAsync(a => a.Id == article.Id);
-
-                if (existingArticle != null)
+                var parentNode = articleNode.ParentNode;
+                if (parentNode != null && parentNode.InnerHtml.Contains(articleNode.OuterHtml))
                 {
-                    existingArticle.Text = FormatHtmlContent(articleNode.InnerHtml);
-                    await _context.SaveChangesAsync();
+                    var existingArticle = await _context.Articles
+                        .FirstOrDefaultAsync(a => a.Id == article.Id);
+
+                    if (existingArticle != null)
+                    {
+                        existingArticle.Text = FormatHtmlContent(articleNode.InnerHtml);
+                        await _context.SaveChangesAsync();
+                    }
                 }
             }
         }

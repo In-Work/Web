@@ -8,10 +8,12 @@ namespace Web.Mapper
     [Mapper]
     public static partial class ApplicationMapper
     {
-        [MapProperty(nameof(Article.Source.Title), nameof(ArticleModel.SourceName))]
+        [MapProperty([nameof(Article.Source), nameof(Article.Source.Title)],
+            [nameof(ArticleDto.SourceName)])]
         public static partial ArticleModel ArticleToArticleModel(Article? article);
 
-        [MapProperty(nameof(Article.Source.Title), nameof(ArticleModel.SourceName))]
+        [MapProperty([nameof(Article.Source), nameof(Article.Source.Title)],
+            [nameof(ArticleDto.SourceName)])]
         public static partial List<ArticleModel> ArticleListToArticleModelList(List<Article> articles);
 
         [MapProperty(nameof(Comment.User.Name), nameof(CommentModel.UserName))]

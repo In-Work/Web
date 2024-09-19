@@ -24,3 +24,15 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+.my_background {
+  background: linear-gradient(to right, #f8f9fa, #e9ecef);
+}
+
+.windows_background {
+  background: linear-gradient(to right, #e9ecef, #f8f9fa);
+}
+
+.windowsButton_background {
+  background: #86919d;
+}
