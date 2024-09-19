@@ -4,13 +4,25 @@
     ViewData["Title"] = "User Settings";
 }
 
-<h2>User Settings</h2>
-
-<h2>@Model.UserName</h2>
-
-<form asp-action="ChangeMinRank" method="post">
-    <input type="hidden" name="articleId" value="@Model.MinRank" />
-    <input type="number" name="minRank" value="@Model.MinRank" />
-
-    <button type="submit">Submit</button>
-</form>
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">User Settings</h2>
+                </div>
+                <div class="card-body">
+                    <h3 class="card-subtitle mb-3">@Model.UserName</h3>
+                    <form asp-action="ChangeMinRank" method="post">
+                        <div class="form-group">
+                            <label for="minRank">Minimum Rank</label>
+                            <input type="hidden" name="articleId" value="@Model.MinRank" />
+                            <input type="number" class="form-control" id="minRank" name="minRank" value="@Model.MinRank" />
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-3">Submit</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
