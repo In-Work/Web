@@ -69,26 +69,19 @@ namespace Web.Services.Implementations
             {
                 var sources = await GetArticleSourcesAsync(token);
 
-                foreach (var source in sources!)
-                {
-                    await InsertUniqueArticlesFromRssDataAsync(source, token);
-                }
+                var insertTasks = sources!.Select(source => InsertUniqueArticlesFromRssDataAsync(source, token));
+                await Task.WhenAll(insertTasks);
 
                 var articles = await GetArticlesDataWithoutTextAsync(token);
 
-                foreach (var article in articles)
-                {
-                    await UpdateTextByWebScrapping(article);
-                }
+                var updateTasks = articles.Select(article => UpdateTextByWebScrapping(article));
+                await Task.WhenAll(updateTasks);
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
                 throw;
             }
-            //get id from sources in dbContext
-
-            //await Task.WhenAll(tasks);
         }
         public async Task<List<Source>?> GetArticleSourcesAsync(CancellationToken token = default)
         {
@@ -154,7 +147,7 @@ namespace Web.Services.Implementations
                     }
 
                     var style = img.GetAttributeValue("style", string.Empty);
-                    style += "max-width: 100%; height: auto; display: block; margin: 0 auto; border-radius: 4px;";
+                    style += "min-width: 100%; height: auto; display: block; margin: 0 auto; border-radius: 4px;";
                     img.SetAttributeValue("style", style);
                 }
             }
@@ -200,6 +193,28 @@ namespace Web.Services.Implementations
                     if (link.InnerText.StartsWith("Читать далее"))
                     {
                         link.Remove();
+                    }
+                    else
+                    {
+                        var img = link.SelectSingleNode(".//img");
+                        if (img != null)
+                        {
+                            link.ParentNode.ReplaceChild(img, link);
+
+                            // Apply styles to the image
+                            img.Attributes.Remove("srcset");
+
+                            var dataSrc = img.GetAttributeValue("data-src", null);
+                            if (!string.IsNullOrEmpty(dataSrc))
+                            {
+                                img.SetAttributeValue("src", dataSrc);
+                                img.Attributes.Remove("data-src");
+                            }
+
+                            var style = img.GetAttributeValue("style", string.Empty);
+                            style += "min-width: 100%; height: auto; display: block; margin: 0 auto; border-radius: 4px;";
+                            img.SetAttributeValue("style", style);
+                        }
                     }
                 }
             }
