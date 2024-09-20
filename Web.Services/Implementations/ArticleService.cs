@@ -147,7 +147,7 @@ namespace Web.Services.Implementations
                     }
 
                     var style = img.GetAttributeValue("style", string.Empty);
-                    style += "min-width: 100%; height: auto; display: block; margin: 0 auto; border-radius: 4px;";
+                    style += "max-width: 100%; height: auto; display: block; margin: 0 auto; border-radius: 4px;";
                     img.SetAttributeValue("style", style);
                 }
             }
