@@ -9,6 +9,7 @@ using Web.DataAccess.CQS.Queries.User;
 using Web.DTOs;
 using Web.Models;
 using Web.Services.Abstractions;
+using Web.Data.Migrations;
 
 namespace Web.Services.Implementations;
 
@@ -150,6 +151,28 @@ public class UserService : IUserService
         if (user != null)
         {
             user.MinRank = minRank;
+            await _context.SaveChangesAsync(token);
+        }
+    }
+
+    public async Task ChangeUserNameAsync(string userEmail, string name, CancellationToken token)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email.Equals(userEmail), token);
+
+        if (user != null)
+        {
+            user.Name = name;
+            await _context.SaveChangesAsync(token);
+        }
+    }
+
+    public async Task ChangeUserEmailAsync(string userEmail, string email, CancellationToken token)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email.Equals(userEmail), token);
+
+        if (user != null)
+        {
+            user.Email = email;
             await _context.SaveChangesAsync(token);
         }
     }

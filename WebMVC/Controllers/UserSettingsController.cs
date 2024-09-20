@@ -29,7 +29,23 @@ namespace WebMVC.Controllers
         {
             var userEmail = @User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value!;
             await _userService.ChangeMinRankAsync(userEmail, minRank, token);
-            return RedirectToAction("Index", "Article");
+            return View("Index");
+        }
+        
+        [HttpPost]
+        public async Task<IActionResult> ChangeUserName(string name, CancellationToken token = default)
+        {
+            var userEmail = @User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value!;
+            await _userService.ChangeUserNameAsync(userEmail, name, token);
+            return View("Index");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ChangeUserEmail(string email, CancellationToken token = default)
+        {
+            var userEmail = @User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value!;
+            await _userService.ChangeUserEmailAsync(userEmail, email, token);
+            return View("Index");
         }
     }
 }
