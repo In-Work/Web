@@ -32,6 +32,7 @@ namespace Web.Infrastructure
             services.AddScoped<ICommentService, CommentService>();
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IAdminService, AdminService>();
 
             return services;
         }

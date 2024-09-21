@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Web.Data;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Web.Infrastructure;
+using Serilog;
+using Serilog.Events;
 
 namespace Web.MVC
 {
@@ -18,6 +20,13 @@ namespace Web.MVC
 
             builder.Services.RegisterApplicationServices();
             builder.Services.RegisterRefreshTokenByIdMediatr();
+
+            builder.Services.AddSerilog((services, lc) => lc
+                .ReadFrom.Configuration(builder.Configuration)
+                .ReadFrom.Services(services)
+                .Enrich.FromLogContext()
+                .WriteTo.Console(LogEventLevel.Error)
+                .WriteTo.File("log.log"));
 
             builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>

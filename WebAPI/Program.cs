@@ -1,14 +1,12 @@
 
+using Hangfire;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Web.DataAccess.CQS.Queries.Items;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using System.Text;
 using Web.Data;
 using Web.Infrastructure;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using Microsoft.OpenApi.Models;
 
 namespace Web.API
 {
@@ -82,9 +80,15 @@ namespace Web.API
                     }
                 });
             });
-
             builder.Services.RegisterItemMediatr();
 
+            builder.Services.AddHangfire(config => config
+                .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+                .UseSimpleAssemblyNameTypeSerializer()
+                .UseRecommendedSerializerSettings()
+                .UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+            builder.Services.AddHangfireServer();
             var app = builder.Build();
 
 
@@ -98,7 +102,7 @@ namespace Web.API
             app.UseHttpsRedirection();
             app.UseAuthorization();
             app.MapControllers();
-
+            app.UseHangfireDashboard();
             app.Run();
         }
     }

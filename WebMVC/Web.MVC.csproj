@@ -25,6 +25,8 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.5" />
+    <PackageReference Include="Serilog" Version="4.0.1" />
+    <PackageReference Include="Serilog.AspNetCore" Version="8.0.2" />
     <PackageReference Include="System.ServiceModel.Syndication" Version="8.0.0" />
     <PackageReference Include="X.PagedList" Version="10.0.3" />
     <PackageReference Include="X.Web.PagedList" Version="10.1.2" />
@@ -40,10 +42,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Areas\test\Controllers\" />
-    <Folder Include="Areas\test\Data\" />
-    <Folder Include="Areas\test\Models\" />
-    <Folder Include="Areas\test\Views\" />
+    <Folder Include="Areas\" />
   </ItemGroup>
 
 </Project>

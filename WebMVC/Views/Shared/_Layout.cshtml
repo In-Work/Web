@@ -33,7 +33,7 @@
                             @if (Context.User.HasClaim(claim => claim.Type.Equals(ClaimTypes.Role) && claim.Value.Equals("Admin")))
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="Article" asp-action="Index">Admin</a>
+                                    <a class="nav-link text-dark" asp-area="" asp-controller="Admin" asp-action="Index">Admin</a>
                                 </li>
                             }
                         }
