@@ -42,7 +42,7 @@ namespace Web.Services.Implementations
         public async Task<string?> CreateAccessTokenStringAsync(List<Claim> claims, CancellationToken token = default)
         {
             var jwtHandler = new JwtSecurityTokenHandler();
-            var symmetricSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["jwtToken:Secret"]));
+            var symmetricSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["jwtToken:SecurityKey"]));
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
@@ -75,6 +75,15 @@ namespace Web.Services.Implementations
             return rToken
                 is { IsRevoked: false }
                    && (rToken.ExpireDateTime <= DateTime.UtcNow || rToken.ExpireDateTime == null);
+        }
+
+        public async Task<(string?, string?)> GenerateTokenPairByUserIdAsync(Guid userId, List<string> userRoles, CancellationToken token = default)
+        {
+            var accessToken = await GenerateJwtTokenStringAsync(userId, userRoles, token);
+            var deviceInfo = "localhost";
+            var refreshToken = await GenerateRefreshTokenAsync(userId, deviceInfo, token);
+
+            return (accessToken, refreshToken);
         }
     }
 }

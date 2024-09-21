@@ -17,17 +17,19 @@ namespace Web.API
             var builder = WebApplication.CreateBuilder(args);
             var configuration = builder.Configuration;
 
-            var jwtIssuer = configuration.GetSection("Jwt:Issuer").Get<string>();
-            var jwtAudience = configuration.GetSection("Jwt:Audience").Get<string>();
-            var jwtSecurityKey = configuration.GetSection("Jwt:SecurityKey").Get<string>();
+            var jwtIssuer = configuration.GetSection("jwtToken:Issuer").Get<string>();
+            var jwtAudience = configuration.GetSection("jwtToken:Audience").Get<string>();
+            var jwtSecurityKey = configuration.GetSection("jwtToken:SecurityKey").Get<string>();
 
-            var connectionStrin = configuration.GetConnectionString("DefaultConnection");
+            var connectionString = configuration.GetConnectionString("DefaultConnection");
+            
 
             builder.Services.AddDbContext<ApplicationContext>(options =>
-                options.UseSqlServer(connectionStrin));
+                options.UseSqlServer(connectionString));
+            builder.Services.RegisterApplicationServices();
 
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(options =>
+               .AddJwtBearer(options =>
                 {
                     options.TokenValidationParameters = new TokenValidationParameters()
                     {
@@ -38,7 +40,7 @@ namespace Web.API
 
                         ValidIssuer = jwtIssuer,
                         ValidAudience = jwtAudience,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecurityKey)),
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecurityKey!)),
                     };
                 }
             );
@@ -80,6 +82,7 @@ namespace Web.API
                     }
                 });
             });
+
             builder.Services.RegisterItemMediatr();
 
             builder.Services.AddHangfire(config => config
@@ -89,6 +92,7 @@ namespace Web.API
                 .UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             builder.Services.AddHangfireServer();
+
             var app = builder.Build();
 
 
@@ -100,6 +104,7 @@ namespace Web.API
             }
 
             app.UseHttpsRedirection();
+            app.UseAuthentication();
             app.UseAuthorization();
             app.MapControllers();
             app.UseHangfireDashboard();

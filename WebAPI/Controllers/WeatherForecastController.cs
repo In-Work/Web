@@ -11,7 +11,6 @@ namespace Web.API.Controllers
             "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
         };
 
-
         public WeatherForecastController()
         {
         }

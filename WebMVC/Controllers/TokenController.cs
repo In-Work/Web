@@ -29,7 +29,7 @@ namespace Web.MVC.Controllers
 
                 if (user != null)
                 {
-                    var (accessToken, refreshToken) = await GenerateTokenPairByUserIdAsync(user.Id, user.RoleNames, token);
+                    var (accessToken, refreshToken) = await _tokenService.GenerateTokenPairByUserIdAsync(user.Id, user.RoleNames, token);
 
                     //await _tokenService.RemoveToken(refreshTokenId, token); //todo need to be implemented
 
@@ -72,7 +72,7 @@ namespace Web.MVC.Controllers
                 return View(model);
             }
 
-            var (accessToken, refreshToken) = await GenerateTokenPairByUserIdAsync(userId.Value, userRoles, token);
+            var (accessToken, refreshToken) = await _tokenService.GenerateTokenPairByUserIdAsync(userId.Value, userRoles, token);
 
             var result = new
             {
@@ -81,24 +81,6 @@ namespace Web.MVC.Controllers
             };
             
             return RedirectToAction("Index", "Article");
-        }
-
-        //[HttpPost]
-        //public async Task<IActionResult> Revoke(Guid id,
-        //    CancellationToken cancellationToken = default)
-        //{
-        //    //set IsRevoked true for refreshToken 
-        //    return NotFound();
-        //}
-
-        [HttpPost]
-        private async Task<(string?, string?)> GenerateTokenPairByUserIdAsync(Guid userId, List<string> userRoles, CancellationToken token = default)
-        {
-            var accessToken = await _tokenService.GenerateJwtTokenStringAsync(userId, userRoles, token);
-            var deviceInfo = "localhost";
-            var refreshToken = await _tokenService.GenerateRefreshTokenAsync(userId, deviceInfo, token);
-
-            return (accessToken, refreshToken);
         }
     }
 }
