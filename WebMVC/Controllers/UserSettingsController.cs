@@ -25,27 +25,20 @@ namespace WebMVC.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> ChangeMinRank(int minRank, CancellationToken token = default)
+        public async Task<IActionResult> ChangeMinRank(UserSettingsModel model, CancellationToken token = default)
         {
-            var userEmail = @User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value!;
-            await _userService.ChangeMinRankAsync(userEmail, minRank, token);
-            return View("Index");
-        }
-        
-        [HttpPost]
-        public async Task<IActionResult> ChangeUserName(string name, CancellationToken token = default)
-        {
-            var userEmail = @User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value!;
-            await _userService.ChangeUserNameAsync(userEmail, name, token);
-            return View("Index");
-        }
+            if (!ModelState.IsValid)
+            {
+                ModelState.AddModelError(nameof(model.MinRank), "error");
+                return RedirectToAction("Index");
+            }
+            else
+            {
+                var userEmail = @User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value!;
+                await _userService.ChangeMinRankAsync(userEmail, model.MinRank, token);
+            }
 
-        [HttpPost]
-        public async Task<IActionResult> ChangeUserEmail(string email, CancellationToken token = default)
-        {
-            var userEmail = @User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value!;
-            await _userService.ChangeUserEmailAsync(userEmail, email, token);
-            return View("Index");
+            return RedirectToAction("Index", "Article");
         }
     }
 }

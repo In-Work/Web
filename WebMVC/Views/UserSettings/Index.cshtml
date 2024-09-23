@@ -1,7 +1,7 @@
-@model UserSettingsModel
+﻿@model UserSettingsModel
 
 @{
-    ViewData["Title"] = "User Settings";
+    ViewData["Title"] = $"User Settings";
 }
 
 <div class="container mt-5">
@@ -12,12 +12,13 @@
                     <h2 class="card-title">User Settings</h2>
                 </div>
                 <div class="card-body">
+                    <label asp-for="UserName" class="form-label"></label>
                     <h3 class="card-subtitle mb-3">@Model.UserName</h3>
-                    <form asp-action="ChangeMinRank" method="post">
+                    <form asp-controller="UserSettings" asp-action="ChangeMinRank" method="post">
                         <div class="form-group">
-                            <label for="minRank">Minimum Rank</label>
-                            <input type="hidden" name="articleId" value="@Model.MinRank" />
-                            <input type="number" class="form-control" id="minRank" name="minRank" value="@Model.MinRank" />
+                            <label asp-for="MinRank" class="form-label"></label>
+                            <input asp-for="MinRank" class="form-control" type="number" />
+                            <span asp-validation-for="MinRank" class="text-danger"></span>
                         </div>
                         <button type="submit" class="btn btn-primary mt-3">Submit</button>
                     </form>
