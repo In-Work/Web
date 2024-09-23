@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System.Security.Claims;
 using Web.Data;
 using Web.Mapper;
@@ -13,15 +14,17 @@ namespace Web.MVC.Controllers
         private readonly IArticleService _articleService;
         private readonly ICommentService _commentService;
         private readonly ILogger<ArticleController> _logger;
-
+        private readonly IWebHostEnvironment _env;
         public ArticleController(ApplicationContext context, 
             ILogger<ArticleController> logger, 
             IArticleService articleService, 
-            ICommentService commentService)
+            ICommentService commentService,
+            IWebHostEnvironment env)
         {
             _articleService = articleService;
             _commentService = commentService;
             _logger = logger;
+            _env = env;
         }
 
         [HttpGet]
@@ -129,6 +132,19 @@ namespace Web.MVC.Controllers
         [HttpPost]
         public async Task<IActionResult> AgregateArticle(CancellationToken token = default)
         {
+            _logger.LogInformation("AgregateArticle action called");
+            await _articleService.AggregateArticleAsync(token);
+            return Ok();
+        }
+
+
+        [HttpPost]
+        public async Task<IActionResult> PositivityAssessment(CancellationToken token = default)
+        {
+            var filePath = Path.Combine(_env.WebRootPath, "res", "AFINN-ru.json");
+            string json = await System.IO.File.ReadAllTextAsync(filePath);
+            Dictionary<string, int?> afinnData = JsonConvert.DeserializeObject<Dictionary<string, int?>>(json);
+
             _logger.LogInformation("AgregateArticle action called");
             await _articleService.AggregateArticleAsync(token);
             return Ok();

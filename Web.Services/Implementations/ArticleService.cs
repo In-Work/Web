@@ -83,6 +83,12 @@ namespace Web.Services.Implementations
                 throw;
             }
         }
+
+        public async Task PositivityAssessmentAsync(Dictionary<string, int?> afinnData, CancellationToken token)
+        {
+           var articles =  await _context.Articles.Where(a => a.Rate == null).ToListAsync(token);
+        }
+
         public async Task<List<Source>?> GetArticleSourcesAsync(CancellationToken token = default)
         {
             return await _context.Sources
