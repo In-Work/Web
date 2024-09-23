@@ -24,6 +24,11 @@ namespace Web.Mapper
             [nameof(ArticleDto.SourceName)])]
         public static partial ArticleDto? ArticleToArticleDto(Article? article);
 
+        [MapProperty(nameof(Article.Id), nameof(ArticleDto.Id))]
+        [MapProperty([nameof(Article.Source), nameof(Article.Source.Title)],
+            [nameof(ArticleDto.SourceName)])]
+        public static partial List<ArticleDto?> ArticlesToArticlesDto(List<Article?> article);
+
         [MapProperty(nameof(ArticleDto.Id), nameof(ArticleModel.Id))]
         public static partial ArticleModel? ArticleDtoToArticleModel(ArticleDto? articleDto);
 

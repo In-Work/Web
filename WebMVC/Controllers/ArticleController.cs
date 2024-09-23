@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Web.Data;
 using Web.Mapper;
 using Web.Models;
@@ -12,6 +13,7 @@ namespace Web.MVC.Controllers
     public class ArticleController : Controller
     {
         private readonly IArticleService _articleService;
+        private readonly IUserService _userService;
         private readonly ICommentService _commentService;
         private readonly ILogger<ArticleController> _logger;
         private readonly IWebHostEnvironment _env;
@@ -19,12 +21,14 @@ namespace Web.MVC.Controllers
             ILogger<ArticleController> logger, 
             IArticleService articleService, 
             ICommentService commentService,
-            IWebHostEnvironment env)
+            IWebHostEnvironment env,
+            IUserService userService)
         {
             _articleService = articleService;
             _commentService = commentService;
             _logger = logger;
             _env = env;
+            _userService = userService;
         }
 
         [HttpGet]
@@ -36,6 +40,24 @@ namespace Web.MVC.Controllers
 
             var articles = await _articleService.GetArticlesAsync(token);
             var models = ApplicationMapper.ArticleListToArticleModelList(articles);
+            var pagedArticles = models.ToPagedList(pageNumber, pageSize);
+
+            return View(pagedArticles);
+        }
+
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> UserArticles(int? page, CancellationToken token = default)
+        {
+            _logger.LogInformation("Index action called with page: {Page}", page);
+            var pageSize = 20;
+            var pageNumber = page ?? 1;
+            
+            var articles = await _articleService.GetArticlesAsync(token);
+            var userEmail = @User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+            var minRank = (await _userService.GetUserByEmailAsync(userEmail, token)).MinRank;
+            var rangedArtickes = articles.Where(a => a.Rate >= minRank).ToList();
+            var models = ApplicationMapper.ArticleListToArticleModelList(rangedArtickes);
             var pagedArticles = models.ToPagedList(pageNumber, pageSize);
 
             return View(pagedArticles);

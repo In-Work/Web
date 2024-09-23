@@ -36,7 +36,7 @@
 
         <nav aria-label="Page navigation" class="mt-4">
             <ul class="pagination justify-content-center">
-                @Html.PagedListPager(Model, page => Url.Action("Index", new { page }), new PagedListRenderOptions
+                @Html.PagedListPager(Model, page => Url.Action("UserArticles", new { page }), new PagedListRenderOptions
        {
            LiElementClasses = new[] { "page-item" },
            PageClasses = new[] { "page-link" },
