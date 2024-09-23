@@ -1,8 +1,10 @@
 ﻿using HtmlAgilityPack;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using System.Net.Http.Json;
 using System.ServiceModel.Syndication;
 using System.Xml;
+using Newtonsoft.Json.Linq;
 using Web.Data;
 using Web.Data.Entities;
 using Web.DataAccess.CQS.Commands.Articles;
@@ -84,9 +86,92 @@ namespace Web.Services.Implementations
             }
         }
 
-        public async Task PositivityAssessmentAsync(Dictionary<string, int?> afinnData, CancellationToken token)
+        public async Task PositivityAssessmentAsync(Dictionary<string, int> afinnData, CancellationToken token)
         {
-           var articles =  await _context.Articles.Where(a => a.Rate == null).ToListAsync(token);
+            var articles = await _context.Articles.Where(a => a.Rate == null && a.OriginalText != null).ToListAsync(token);
+            foreach (var article in articles)
+            {
+                string data = article.OriginalText!;
+                double x = 0;
+                var key = "b38193c09b66ce4375bfa816f664201d31c42d50";
+                using (var client = new HttpClient())
+                {
+                    var request = new HttpRequestMessage(HttpMethod.Post,
+                        $"http://api.ispras.ru/texterra/v1/nlp?targetType=lemma&apikey={key}");
+
+                    request.Headers.Add("Accept", "application/json");
+                    request.Content = JsonContent.Create(new[]
+                    {
+                    new { Text = data }
+                });
+
+                    var response = await client.SendAsync(request);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var responseString = await response.Content.ReadAsStringAsync();
+                        var list = ExtractValuesFromJson(responseString);
+
+                        var result = FindWordsWithScores(list, afinnData);
+                        var summ = 0;
+
+                        foreach (var item in result)
+                        {
+                            summ += item.Value;
+                        }
+
+                        var count = result.Count();
+                        if (count != 0)
+                        {
+
+                            x = summ / count;
+                        }
+                        else
+                        {
+                            x = 0;
+                        }
+                    }
+                }
+
+                article.Rate = x;
+                await _context.SaveChangesAsync(token);
+            }
+        }
+
+        private static List<string> ExtractValuesFromJson(string json)
+        {
+            var values = new List<string>();
+
+            var jsonArray = JArray.Parse(json);
+
+            foreach (var item in jsonArray)
+            {
+                var annotations = item["annotations"]?["lemma"];
+                if (annotations != null)
+                {
+                    foreach (var annotation in annotations)
+                    {
+                        values.Add(annotation["value"].ToString());
+                    }
+                }
+            }
+
+            return values;
+        }
+
+        Dictionary<string, int> FindWordsWithScores(List<string> wordsList, Dictionary<string, int> wordsScores)
+        {
+            Dictionary<string, int> foundWords = new Dictionary<string, int>();
+
+            foreach (var word in wordsList)
+            {
+                if (wordsScores.TryGetValue(word, out int score))
+                {
+                    foundWords[word] = score;
+                }
+            }
+
+            return foundWords;
         }
 
         public async Task<List<Source>?> GetArticleSourcesAsync(CancellationToken token = default)
@@ -115,15 +200,15 @@ namespace Web.Services.Implementations
 
                 var articles = syndicationFeed.Items
                 .Select(item => new ArticleDto()
-                    {
-                        Id = Guid.NewGuid(),
-                        Title = HtmlEntity.DeEntitize(item.Title.Text),
-                        OriginalUrl = item.Id,
-                        Description = FormatHtmlContent(item.Summary?.Text),
-                        PublicationDate = item.PublishDate.DateTime,
-                        SourceId = source.Id,
-                        SourceName = source.Title
-                    }
+                {
+                    Id = Guid.NewGuid(),
+                    Title = HtmlEntity.DeEntitize(item.Title.Text),
+                    OriginalUrl = item.Id,
+                    Description = FormatHtmlContent(item.Summary?.Text),
+                    PublicationDate = item.PublishDate.DateTime,
+                    SourceId = source.Id,
+                    SourceName = source.Title
+                }
                 ).ToList();
 
                 await _mediator.Send(new InsertUniqueArticlesFromRssDataCommand()
@@ -279,6 +364,7 @@ namespace Web.Services.Implementations
 
                     if (existingArticle != null)
                     {
+                        existingArticle.OriginalText = articleNode.InnerHtml;
                         existingArticle.Text = FormatHtmlContent(articleNode.InnerHtml);
                         await _context.SaveChangesAsync();
                     }

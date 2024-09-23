@@ -137,52 +137,16 @@ namespace Web.MVC.Controllers
             return Ok();
         }
 
-
         [HttpPost]
         public async Task<IActionResult> PositivityAssessment(CancellationToken token = default)
         {
             var filePath = Path.Combine(_env.WebRootPath, "res", "AFINN-ru.json");
             string json = await System.IO.File.ReadAllTextAsync(filePath);
-            Dictionary<string, int?> afinnData = JsonConvert.DeserializeObject<Dictionary<string, int?>>(json);
+            Dictionary<string, int> afinnData = JsonConvert.DeserializeObject<Dictionary<string, int>>(json);
 
-            _logger.LogInformation("AgregateArticle action called");
-            await _articleService.AggregateArticleAsync(token);
+            await _articleService.PositivityAssessmentAsync(afinnData, token);
+
             return Ok();
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> RecurringJobInit()
-        {
-            _logger.LogInformation("RecurringJobInit action called");
-            const string data =
-                "Цены на авиабилеты редко приводят в восторг, но это как раз такой случай: авиабилеты первого класса туда и обратно из Австралии в США можно было купить со скидкой 85%. Обычно эти билеты стоят у авиакомпании Qantas около 19 000 долларов. Из-за сбоя около 300 счастливчиков смогли купить их на сайте авиакомпании за 3400 долларов, пока ошибку не исправили.«К сожалению, это тот случай, когда тариф был слишком хорош, чтобы быть правдой», — заявили в авиакомпании.Тем не менее Qantas не аннулировала проданные по ошибке билеты, а пообещала перебронировать их в бизнес-класс «в качестве жеста доброй воли» без дополнительной платы. Кроме того, пассажиры, которых не устраивает бизнес-класс, могут получить полный возврат денег.Перелет бизнес-классом на рейсах Qantas между Австралией и США обычно стоит около 11 000 долларов, уточняет CNN.Это не первый случай, когда авиакомпании по ошибке продавали билеты по вопиюще низким ценам. И иногда они действительно перевозили пассажиров с такими билетами.Но бывает и наоборот. Например, авиакомпания British Airways ошибочно продавала за 40 долларов билеты из Северной Америки в Индию, а когда ошибка была обнаружена, то предложила вместо этого ваучеры на 300 долларов.Авиакомпания American Airlines отказалась предоставить места первого класса из США в Австралию стоимостью до 20 000 долларов, которые она продавала по цене эконом-класса — 1100 долларов. Вместо этого она предложила ваучеры на 200 долларов.";
-            var key = "b38193c09b66ce4375bfa816f664201d31c42d50";
-
-            using (var client = new HttpClient())
-            {
-                var request = new HttpRequestMessage(HttpMethod.Post,
-                    $"http://api.ispras.ru/texterra/v1/nlp?targetType=lemma&apikey={key}");
-                
-                request.Headers.Add("Accept", "application/json");
-                request.Content = JsonContent.Create(new[]
-                {
-                    new { Text = data }
-                });
-                
-                var response = await client.SendAsync(request);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseString = await response.Content.ReadAsStringAsync();
-                    // Process the response as needed
-                    return Ok(responseString);
-                }
-                else
-                {
-                    _logger.LogError("Error in RecurringJobInit: {StatusCode}", response.StatusCode);
-                    return StatusCode(500);
-                }
-            }
         }
     }
 }

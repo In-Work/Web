@@ -11,5 +11,5 @@ public interface IArticleService
     Task<List<Comment>?> GetCommentsByArticleId(Guid articleId, CancellationToken token);
     Task UpdateCommentById(Guid commentId, string commentText, CancellationToken token);
     Task<List<Source>?> GetArticleSourcesAsync(CancellationToken token);
-    Task PositivityAssessmentAsync(Dictionary<string, int?> afinnData, CancellationToken token);
+    Task PositivityAssessmentAsync(Dictionary<string, int> afinnData, CancellationToken token);
 }
