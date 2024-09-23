@@ -1,29 +1,22 @@
 ﻿@model UserSettingsModel
 
 @{
-    ViewData["Title"] = $"User Settings";
+    ViewData["Title"] = "User Settings";
 }
 
-<div class="container mt-5">
+<div class="container mt-4">
+    <h2 class="mb-4">@ViewData["Title"]</h2>
+    <div class="row mb-3">
+        <div class="col-md-2 font-weight-bold">UserName</div>
+        <div class="col-md-10">@Model.UserName</div>
+    </div>
+    <div class="row mb-3">
+        <div class="col-md-2 font-weight-bold">MinRank</div>
+        <div class="col-md-10">@Model.MinRank</div>
+    </div>
     <div class="row">
-        <div class="col-md-6 offset-md-3">
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">User Settings</h2>
-                </div>
-                <div class="card-body">
-                    <label asp-for="UserName" class="form-label"></label>
-                    <h3 class="card-subtitle mb-3">@Model.UserName</h3>
-                    <form asp-controller="UserSettings" asp-action="ChangeMinRank" method="post">
-                        <div class="form-group">
-                            <label asp-for="MinRank" class="form-label"></label>
-                            <input asp-for="MinRank" class="form-control" type="number" />
-                            <span asp-validation-for="MinRank" class="text-danger"></span>
-                        </div>
-                        <button type="submit" class="btn btn-primary mt-3">Submit</button>
-                    </form>
-                </div>
-            </div>
+        <div class="col-md-12">
+            <a class="btn btn-primary" asp-action="Change" asp-controller="UserSettings">Change value</a>
         </div>
     </div>
 </div>

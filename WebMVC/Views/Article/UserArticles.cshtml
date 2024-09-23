@@ -1,0 +1,54 @@
+﻿@model IPagedList<ArticleModel>
+
+@{
+    ViewData["Title"] = "Articles";
+}
+
+<div class="container mt-4">
+    <h1 class="mb-4">@ViewData["Title"]</h1>
+
+    @if (Model.Any())
+    {
+        <div class="row row-cols-1 row-cols-md-2 g-4 ">
+            @foreach (var article in Model)
+            {
+                <div class="col">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-header">
+                            <div class="p-2 flex-column">
+                                <div class="text-muted">@article.SourceName</div>
+                                <div class="text-muted">@article.PublicationDate.ToString("d MMMM yyyy hh:mm:ss ")</div>
+                            </div>
+                            <div class="p-2">
+                                <a class="h5 text-black text-decoration-none" href="@article.OriginalUrl">@article.Title</a>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">@Html.Raw(article.Description)</p>
+                        </div>
+                        <div class="card-footer bg-transparent border-top-0 mb-2">
+                            <a class="btn btn-outline-secondary w-100" asp-route-articleId="@article.Id" asp-action="Details" asp-controller="Article">Details</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                @Html.PagedListPager(Model, page => Url.Action("Index", new { page }), new PagedListRenderOptions
+       {
+           LiElementClasses = new[] { "page-item" },
+           PageClasses = new[] { "page-link" },
+           MaximumPageNumbersToDisplay = 3
+       })
+            </ul>
+        </nav>
+    }
+    else
+    {
+        <div class="alert alert-info" role="alert">
+            No articles found.
+        </div>
+    }
+</div>

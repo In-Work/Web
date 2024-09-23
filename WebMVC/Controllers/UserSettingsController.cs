@@ -24,21 +24,27 @@ namespace WebMVC.Controllers
             return View(model);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> Change(CancellationToken token = default)
+        {
+            var userEmail = @User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value!;
+            var user = await _userService.GetUserByEmailAsync(userEmail, token);
+            var model = ApplicationMapper.UserToUserSettingsModel(user);
+            return View(model);
+        }
+
         [HttpPost]
-        public async Task<IActionResult> ChangeMinRank(UserSettingsModel model, CancellationToken token = default)
+        public async Task<IActionResult> Change(UserSettingsModel model, CancellationToken token = default)
         {
             if (!ModelState.IsValid)
             {
-                ModelState.AddModelError(nameof(model.MinRank), "error");
-                return RedirectToAction("Index");
-            }
-            else
-            {
-                var userEmail = @User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value!;
-                await _userService.ChangeMinRankAsync(userEmail, model.MinRank, token);
+                return View(model);
             }
 
-            return RedirectToAction("Index", "Article");
+            var userEmail = @User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value!;
+            await _userService.ChangeUserSettingsRankAsync(userEmail, model, token);
+
+            return RedirectToAction("Index");
         }
     }
 }

@@ -144,35 +144,16 @@ public class UserService : IUserService
         return await _mediator.Send(new GetUserDataByRefreshTokenQuery() { ToklenId = id }, token);
     }
 
-    public async Task ChangeMinRankAsync(string userEmail, int minRank, CancellationToken token = default)
+
+
+    public async Task ChangeUserSettingsRankAsync(string userEmail, UserSettingsModel model, CancellationToken token = default)
     {
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Email.Equals(userEmail), token);
 
         if (user != null)
         {
-            user.MinRank = minRank;
-            await _context.SaveChangesAsync(token);
-        }
-    }
-
-    public async Task ChangeUserNameAsync(string userEmail, string name, CancellationToken token)
-    {
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email.Equals(userEmail), token);
-
-        if (user != null)
-        {
-            user.Name = name;
-            await _context.SaveChangesAsync(token);
-        }
-    }
-
-    public async Task ChangeUserEmailAsync(string userEmail, string email, CancellationToken token)
-    {
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email.Equals(userEmail), token);
-
-        if (user != null)
-        {
-            user.Email = email;
+            user.MinRank = model.MinRank;
+            user.Name = model.UserName;
             await _context.SaveChangesAsync(token);
         }
     }
