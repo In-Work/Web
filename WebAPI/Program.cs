@@ -95,8 +95,6 @@ namespace Web.API
 
             var app = builder.Build();
 
-
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -108,6 +106,7 @@ namespace Web.API
             app.UseAuthorization();
             app.MapControllers();
             app.UseHangfireDashboard();
+
             app.Run();
         }
     }

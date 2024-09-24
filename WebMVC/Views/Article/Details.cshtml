@@ -1,4 +1,5 @@
-﻿@using Microsoft.IdentityModel.Tokens
+﻿@using System.Security.Claims
+@using Microsoft.IdentityModel.Tokens
 @model ArticleWithCommentsModel
 
 @{
@@ -39,6 +40,8 @@
         {
             @foreach (var comment in Model.CommentsModels.OrderByDescending(c => c.PublicationDateTime))
             {
+
+                var isAdmin = Context.User.HasClaim(claim => claim.Type.Equals(ClaimTypes.Role) && claim.Value.Equals("Admin"));
                 if (!comment.IsEditing)
                 {
                     <div class="card bg-light mb-3">
@@ -50,34 +53,37 @@
                                     <div class="text-muted">@comment.PublicationDateTime.ToString("dd MMM, hh:mm ")</div>
                                 </div>
                             </div>
-                            <div class="dropdown">
-                                <button class="btn" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fas fa-ellipsis-v black"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
-                                    <li>
-                                        <form asp-action="EditComment" method="post" style="display:inline;">
-                                            <input type="hidden" name="articleId" value="@Model.ArticleModel.Id"/>
-                                            <input type="hidden" name="commentId" value="@comment.Id"/>
-                                            <button type="submit" class="dropdown-item">
-                                                <i class="fas fa-edit p-2"></i>
-                                                Edit
-                                            </button>
-                                        </form>
-                                    </li>
-                                    <li>
-                                        <form asp-action="DeleteComment" method="post" style="display:inline;">
-                                            <input type="hidden" name="articleId" value="@Model.ArticleModel.Id"/>
-                                            <input type="hidden" name="commentId" value="@comment.Id"/>
-                                            <button type="submit" class="dropdown-item ">
-                                                <i class="fa fa-trash p-2" style="color: darkred"></i>
-                                                Delete
-                                            </button>
-                                        </form>
-                                    </li>
-                                </ul>
+                            @if (isAdmin)
+                            {
+                                <div class="dropdown">
+                                    <button class="btn" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-ellipsis-v black"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
+                                        <li>
+                                            <form asp-action="EditComment" method="post" style="display:inline;">
+                                                <input type="hidden" name="articleId" value="@Model.ArticleModel.Id"/>
+                                                <input type="hidden" name="commentId" value="@comment.Id"/>
+                                                <button type="submit" class="dropdown-item">
+                                                    <i class="fas fa-edit p-2"></i>
+                                                    Edit
+                                                </button>
+                                            </form>
+                                        </li>
+                                        <li>
+                                            <form asp-action="DeleteComment" method="post" style="display:inline;">
+                                                <input type="hidden" name="articleId" value="@Model.ArticleModel.Id"/>
+                                                <input type="hidden" name="commentId" value="@comment.Id"/>
+                                                <button type="submit" class="dropdown-item ">
+                                                    <i class="fa fa-trash p-2" style="color: darkred"></i>
+                                                    Delete
+                                                </button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </div>
+                            }
                             </div>
-                        </div>
                         <div class="card-body ms-5">
                             @comment.Text
                         </div>
