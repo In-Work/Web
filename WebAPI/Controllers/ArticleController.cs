@@ -32,6 +32,7 @@ namespace Web.API.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<IActionResult> Get(Guid id, CancellationToken token = default)
         {
             var article = await _articleService.GetArticleByIdAsync(id, token);
