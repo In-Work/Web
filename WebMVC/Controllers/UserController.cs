@@ -87,7 +87,7 @@ namespace Web.MVC.Controllers
 
                 await HttpContext.SignInAsync(principal);
 
-                return RedirectToAction("Index", "Article");
+                return RedirectToAction("UserArticles", "Article");
             }
             
             ModelState.AddModelError("", "Incorrect Email or Password");

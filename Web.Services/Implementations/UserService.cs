@@ -159,8 +159,6 @@ public class UserService : IUserService
         return await _mediator.Send(new GetUserDataByRefreshTokenQuery() { ToklenId = id }, token);
     }
 
-
-
     public async Task ChangeUserSettingsRankAsync(string userEmail, UserSettingsModel model, CancellationToken token = default)
     {
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Email.Equals(userEmail), token);
@@ -171,5 +169,27 @@ public class UserService : IUserService
             user.Name = model.UserName;
             await _context.SaveChangesAsync(token);
         }
+    }
+
+    public async Task AddAdminRoleByUserIdAsync(Guid userId, CancellationToken token = default)
+    {
+       var user = await _context.Users
+           .Where(u => u.Id.Equals(userId))
+           .Include(u => u.UserRoles)
+           .FirstOrDefaultAsync(token);
+
+       var adminRole = await GetUserRoleByNameAsync("Admin", token);
+
+       if (!user.UserRoles.Contains(adminRole))
+       {
+           user.UserRoles.Add(adminRole);
+           await _context.SaveChangesAsync(token);
+       }
+    }
+
+    public async Task<Role?> GetUserRoleByNameAsync(string name, CancellationToken token = default)
+    {
+        return await _context.Roles
+            .FirstOrDefaultAsync(r => r.RoleName.Equals(name), token);
     }
 }

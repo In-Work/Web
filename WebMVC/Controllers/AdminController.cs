@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Web.Mapper;
+using Web.Models;
 using Web.Services.Abstractions;
 using Web.Services.Implementations;
 
@@ -31,6 +32,14 @@ namespace Web.MVC.Controllers
         public async Task<IActionResult> DeleteUser(Guid userId, CancellationToken token = default)
         {
             await _userService.RemoveUserByUserIdAsync(userId, token);
+            return RedirectToAction("Index");
+        }
+        
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AddAdminRole(Guid userId, CancellationToken token = default)
+        {
+            await _userService.AddAdminRoleByUserIdAsync(userId, token);
             return RedirectToAction("Index");
         }
     }

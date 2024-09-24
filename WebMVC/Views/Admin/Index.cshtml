@@ -1,7 +1,9 @@
-﻿@model List<UserRolesModel>
+﻿@using System.Security.Claims
+@model List<UserRolesModel>
 
 @{
     ViewData["Title"] = "Admin page";
+    int counter = 1;
 }
 
 <div class="card col-lg-3 mb-3">
@@ -22,6 +24,7 @@
     <table class="table">
         <thead>
             <tr>
+                <th>#</th>
                 <th>Id</th>
                 <th>Email</th>
                 <th>Roles</th>
@@ -31,7 +34,8 @@
         <tbody>
             @foreach (var user in Model)
             {
-                <tr>
+                <tr class="align-center">
+                    <td>@counter</td>
                     <td>@user.Id</td>
                     <td>@user.Email</td>
                     <td>
@@ -41,23 +45,33 @@
                         }
                     </td>
                     <td>
-                        <div calss="d-flex gap-2">
-                            <div>
-                                <form asp-controller="Admin"  method="post" class="mb-4">
-                                    <input type="hidden" name="userId" value="@user.Id" />
-                                    <button class="btn btn-primary" type="submit">Edit</button>
-                                </form>
-                            </div>
-                            <div>
-                                <form asp-controller="Admin" asp-action="DeleteUser" method="post" class="mb-4">
-                                    <input type="hidden" name="userId" value="@user.Id"/>
-                                    <button class="btn btn-danger" type="submit">Delete</button>
-                                </form>
-                            </div>
+                        <div class="d-flex gap-2">
+                            <form asp-controller="Admin" asp-action="AddAdminRole" method="post">
+                                <input type="hidden" name="userId" value="@user.Id" />
+                                @if ((@User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value).Equals(user.Id.ToString()))
+                                {
+                                    <button class="btn disabled btn-primary" type="submit">Add Admin Role</button>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-primary" type="submit">Add Admin Role</button>
+                                }
+                            </form>
+                            <form asp-controller="Admin" asp-action="DeleteUser" method="post">
+                                <input type="hidden" name="userId" value="@user.Id"/>
+                                @if ((@User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value).Equals(user.Id.ToString()))
+                                {
+                                    <button class="btn disabled btn-danger" type="submit">Delete</button>
+                                }
+                                else
+                                {
+                                    <button class="btn  btn-danger" type="submit">Delete</button>
+                                }
+                            </form>
                         </div>
                     </td>
-
                 </tr>
+                counter++;
             }
         </tbody>
     </table>

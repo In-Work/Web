@@ -1,0 +1,9 @@
+﻿@model UserRolesModel
+
+@Model.Email
+@foreach (var role in Model.UserRoles)
+{
+    @role.RoleName
+}
+
+
