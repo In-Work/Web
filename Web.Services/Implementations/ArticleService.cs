@@ -10,6 +10,7 @@ using Web.Data.Entities;
 using Web.DataAccess.CQS.Commands.Articles;
 using Web.DTOs;
 using Web.Services.Abstractions;
+using Newtonsoft.Json;
 
 namespace Web.Services.Implementations
 {
