@@ -36,3 +36,10 @@ body {
 .windowsButton_background {
   background: #86919d;
 }
+
+.nav-link:hover {
+  background-color: #6c757d;
+  color: #fff !important;
+  border-radius: 0.25rem;
+  transition: background-color 0.3s, color 0.3s;
+}

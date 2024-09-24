@@ -37,6 +37,8 @@ namespace Web.Mapper
 
         [MapProperty(nameof(User.Name), nameof(UserSettingsModel.UserName))]
         public static partial UserSettingsModel UserToUserSettingsModel(User user);
+        
+        public static partial List<UserRolesModel> UsersToUserRolesModel(List<User> users);
 
     }
 }

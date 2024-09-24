@@ -31,10 +31,7 @@
                         @if (Context.User.Identity != null && Context.User.Identity.IsAuthenticated)
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Article" asp-action="UserArticles">Articles!</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Article" asp-action="Index">My Articles</a>
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Article" asp-action="UserArticles">My Articles</a>
                             </li>
                             @if (Context.User.HasClaim(claim => claim.Type.Equals(ClaimTypes.Role) && claim.Value.Equals("Admin")))
                             {

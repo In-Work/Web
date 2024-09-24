@@ -11,6 +11,12 @@ namespace Web.MVC
     {
         public static void Main(string[] args)
         {
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Error)
+                .Enrich.FromLogContext()
+                .WriteTo.File("log.log")
+                .CreateBootstrapLogger();
+
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Services.AddDbContext<ApplicationContext>(options =>
@@ -38,6 +44,7 @@ namespace Web.MVC
 
             var app = builder.Build();
 
+            app.UseSerilogRequestLogging();
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
             {

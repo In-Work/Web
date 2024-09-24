@@ -1,22 +1,37 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Web.Mapper;
 using Web.Services.Abstractions;
+using Web.Services.Implementations;
 
 namespace Web.MVC.Controllers
 {
     public class AdminController : Controller
     {
         private readonly IAdminService _adminService;
-        public AdminController(IAdminService adminService)
+        private readonly IUserService _userService;
+
+        public AdminController(IAdminService adminService, IUserService userService)
         {
+            _userService = userService;
             _adminService = adminService;
         }
 
         [HttpGet]
         [Authorize(Roles = "Admin")]
-        public IActionResult Index()
+        public async Task<IActionResult> Index(CancellationToken token = default)
         {
-            return View();
+            var users = await _userService.GetAllUsersAsync(token);
+            var userRolesModel = ApplicationMapper.UsersToUserRolesModel(users);
+            return View(userRolesModel);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteUser(Guid userId, CancellationToken token = default)
+        {
+            await _userService.RemoveUserByUserIdAsync(userId, token);
+            return RedirectToAction("Index");
         }
     }
 }

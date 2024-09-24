@@ -17,6 +17,7 @@ namespace Web.MVC.Controllers
         private readonly ICommentService _commentService;
         private readonly ILogger<ArticleController> _logger;
         private readonly IWebHostEnvironment _env;
+
         public ArticleController(ApplicationContext context, 
             ILogger<ArticleController> logger, 
             IArticleService articleService, 
@@ -156,7 +157,7 @@ namespace Web.MVC.Controllers
         {
             _logger.LogInformation("AgregateArticle action called");
             await _articleService.AggregateArticleAsync(token);
-            return Ok();
+            return RedirectToAction("UserArticles", "Article");
         }
 
         [HttpPost]
@@ -167,8 +168,7 @@ namespace Web.MVC.Controllers
             Dictionary<string, int> afinnData = JsonConvert.DeserializeObject<Dictionary<string, int>>(json);
 
             await _articleService.PositivityAssessmentAsync(afinnData, token);
-
-            return Ok();
+            return RedirectToAction("UserArticles", "Article");
         }
     }
 }

@@ -24,6 +24,11 @@ public class UserService : IUserService
         _mediator = mediator;
     }
 
+    public async Task<List<User>?> GetAllUsersAsync(CancellationToken token)
+    {
+        return await _context.Users.Include(u => u.UserRoles).ToListAsync(token);
+    }
+
     public async Task ResetPasswordAsync(string email, string password, CancellationToken token = default)
     {
         var user = await GetUserByEmailAsync(email, token);
@@ -99,6 +104,16 @@ public class UserService : IUserService
             .Where(u => u.Email.Equals(email))
             .Select(u => u.Id)
             .FirstOrDefaultAsync(token);
+    }
+
+    public async Task RemoveUserByUserIdAsync(Guid userId, CancellationToken token = default)
+    {
+       var user = await _context.Users
+            .Where(u => u.Id.Equals(userId))
+            .Include(u => u.UserRoles)
+            .FirstOrDefaultAsync(token);
+       _context.Users.Remove(user);
+       await _context.SaveChangesAsync(token);
     }
 
     public async Task<User?> GetUserByEmailAsync(string email, CancellationToken token = default)

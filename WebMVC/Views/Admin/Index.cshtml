@@ -1,7 +1,64 @@
-﻿<form asp-controller="Article" asp-action="AgregateArticle" method="post" class="mb-4">
-    <button class="btn btn-secondary" type="submit">Aggregate</button>
-</form>
+﻿@model List<UserRolesModel>
 
-<form asp-controller="Article" asp-action="PositivityAssessment" method="post" class="mb-4">
-    <button class="btn btn-secondary" type="submit">Assessment</button>
-</form>
+@{
+    ViewData["Title"] = "Admin page";
+}
+
+<div class="card col-lg-3 mb-3">
+    <div class="card-body">
+        <h4 class="p-2">Admin actions:</h4>
+        <div class="d-flex gap-2 justify-content-around">
+            <form asp-controller="Article" asp-action="AgregateArticle" method="post" class="mb-4">
+                <button class="btn btn-secondary" type="submit">Aggregate</button>
+            </form>
+            <form asp-controller="Article" asp-action="PositivityAssessment" method="post" class="mb-4">
+                <button class="btn btn-secondary" type="submit">Assessment</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Email</th>
+                <th>Roles</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in Model)
+            {
+                <tr>
+                    <td>@user.Id</td>
+                    <td>@user.Email</td>
+                    <td>
+                        @foreach (var role in user.UserRoles)
+                        {
+                            <span class="badge bg-primary">@role.RoleName</span>
+                        }
+                    </td>
+                    <td>
+                        <div calss="d-flex gap-2">
+                            <div>
+                                <form asp-controller="Admin"  method="post" class="mb-4">
+                                    <input type="hidden" name="userId" value="@user.Id" />
+                                    <button class="btn btn-primary" type="submit">Edit</button>
+                                </form>
+                            </div>
+                            <div>
+                                <form asp-controller="Admin" asp-action="DeleteUser" method="post" class="mb-4">
+                                    <input type="hidden" name="userId" value="@user.Id"/>
+                                    <button class="btn btn-danger" type="submit">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    </td>
+
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
